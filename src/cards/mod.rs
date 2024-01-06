@@ -6,16 +6,24 @@ pub mod actions;
 pub mod assets;
 pub mod components;
 pub mod spawn;
+pub mod transition;
+
+pub const CARD_DEPTH: f32 = 2. / 70.;
+pub const CARD_WIDTH: f32 = 6.3;
+pub const CARD_HEIGHT: f32 = 8.8;
 
 pub struct CardsPlugin;
 
 pub mod prelude {
     pub use super::{
         actions::{
-            ComboBlob, ComboMachineCult, ComboStarEmpire, ComboTradeFederation, OnPlay, OnScrap,
+            ActionSet, ComboBlob, ComboMachineCult, ComboStarEmpire, ComboTradeFederation, OnPlay,
+            OnScrap,
         },
-        components::prelude::*,
-        spawn::SpawnCard,
+        CARD_DEPTH,
+        CARD_HEIGHT,
+        CARD_WIDTH,
+        components::prelude::*, spawn::SpawnCard, transition::{CardTransition, StartTransition, TransitionTransforms},
     };
 }
 
@@ -25,6 +33,7 @@ impl Plugin for CardsPlugin {
             actions::GameActionsPlugin,
             assets::SetPlugin,
             components::CardComponentsPlugin,
+            transition::TransitionsPlugin,
         ))
         .add_systems(PreUpdate, spawn_card.run_if(in_state(AppStates::Playing)));
     }

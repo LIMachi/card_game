@@ -1,16 +1,16 @@
 use crate::cards::assets::{Deck, LoadedSet};
 use crate::cards::prelude::*;
-use crate::fps::{fps_counter_showhide, fps_text_update_system, setup_fps_counter};
+use crate::ray_caster::RayCaster;
 use crate::stacks::Stacks;
 use crate::states::app::AppStates;
 use crate::utils::filter_enum::FilterEnumInserter;
-use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::prelude::*;
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use bevy_rapier3d::prelude::{NoUserData, RapierPhysicsPlugin};
 
 mod cards;
-mod fps;
+mod debug;
 mod players;
+mod ray_caster;
 mod stacks;
 mod states;
 mod utils;
@@ -24,7 +24,7 @@ pub fn spawn_camera(mut commands: Commands) {
             }),
             ..Default::default()
         },
-        // RayCaster::default(),
+        RayCaster::default(),
     ));
 }
 
@@ -41,10 +41,6 @@ pub fn spawn_light(mut commands: Commands) {
     });
 }
 
-#[derive(Resource, Debug, Default, Reflect)]
-#[reflect(Resource)]
-pub struct Debug(pub bool);
-
 pub fn spawn_decks(mut commands: Commands, set: Res<LoadedSet>, decks: Res<Assets<Deck>>) {
     if let Some(deck) = decks.get(&set.market_deck) {
         let mut index = 0;
@@ -55,6 +51,13 @@ pub fn spawn_decks(mut commands: Commands, set: Res<LoadedSet>, decks: Res<Asset
                     SpawnCard(name.clone()),
                     SpatialBundle::default(),
                     Name::new(name.clone()),
+                    StartTransition {
+                        owner: CardOwners::Market,
+                        stack: Stacks::MarketDeck,
+                        index: CardIndex(index),
+                        visibility: CardVisibility::Visible,
+                        length: 0.0,
+                    },
                 ));
                 CardOwners::Market.insert(&mut ec);
                 Stacks::MarketDeck.insert(&mut ec);
@@ -69,7 +72,11 @@ pub fn spawn_decks(mut commands: Commands, set: Res<LoadedSet>, decks: Res<Asset
                 let mut ec = commands.spawn((
                     CardIndex(index),
                     SpawnCard(name.clone()),
-                    SpatialBundle::default(),
+                    SpatialBundle::from_transform(Transform::from_xyz(
+                        30.,
+                        CARD_DEPTH * index as f32,
+                        -15.,
+                    )),
                     Name::new(name.clone()),
                 ));
                 CardOwners::Player(0).insert(&mut ec);
@@ -77,7 +84,11 @@ pub fn spawn_decks(mut commands: Commands, set: Res<LoadedSet>, decks: Res<Asset
                 let mut ec = commands.spawn((
                     CardIndex(index),
                     SpawnCard(name.clone()),
-                    SpatialBundle::default(),
+                    SpatialBundle::from_transform(Transform::from_xyz(
+                        30.,
+                        CARD_DEPTH * index as f32,
+                        15.,
+                    )),
                     Name::new(name.clone()),
                 ));
                 CardOwners::Player(1).insert(&mut ec);
@@ -93,7 +104,10 @@ pub fn spawn_decks(mut commands: Commands, set: Res<LoadedSet>, decks: Res<Asset
                 let mut ec = commands.spawn((
                     CardIndex(index),
                     SpawnCard(name.clone()),
-                    SpatialBundle::default(),
+                    SpatialBundle::from_transform(
+                        Transform::from_xyz(-25., CARD_DEPTH * index as f32, 0.)
+                            .with_rotation(Quat::from_axis_angle(Vec3::Z, 180f32.to_radians())),
+                    ),
                     Name::new(name.clone()),
                 ));
                 CardOwners::Market.insert(&mut ec);
@@ -106,23 +120,17 @@ pub fn spawn_decks(mut commands: Commands, set: Res<LoadedSet>, decks: Res<Asset
 
 fn main() {
     App::new()
-        .insert_resource(Debug(true))
-        .add_systems(Update, |k: Res<Input<KeyCode>>, mut d: ResMut<Debug>| {
-            if k.just_pressed(KeyCode::Apps) {
-                d.0 ^= true;
-            }
-        })
         .add_plugins((
             DefaultPlugins,
-            WorldInspectorPlugin::default().run_if(|d: Res<Debug>| d.0),
-            FrameTimeDiagnosticsPlugin::default(),
+            RapierPhysicsPlugin::<NoUserData>::default(),
+            ray_caster::RayCasterPlugin,
             cards::CardsPlugin,
             players::PlayerPlugin,
             stacks::StacksPlugin,
             states::StatesPlugin,
+            debug::DebugPlugin,
         ))
-        .add_systems(Startup, (spawn_camera, spawn_light, setup_fps_counter))
+        .add_systems(Startup, (spawn_camera, spawn_light))
         .add_systems(OnEnter(AppStates::Playing), spawn_decks)
-        .add_systems(Update, (fps_text_update_system, fps_counter_showhide))
         .run();
 }

@@ -13,15 +13,15 @@ pub mod prelude {
     };
 }
 
-#[derive(Component, Reflect, Default, Debug)]
+#[derive(Component, Reflect, Default, Debug, Copy, Clone, Eq, PartialEq, Hash)]
 #[reflect(Component)]
 pub struct CardIndex(pub usize);
 
-#[derive(Component, Reflect, Default, Debug)]
+#[derive(Component, Reflect, Default, Debug, Copy, Clone, Eq, PartialEq)]
 #[reflect(Component)]
 pub struct CardCost(pub i32);
 
-#[derive(Component, Reflect, Default, Debug)]
+#[derive(Component, Reflect, Default, Debug, Copy, Clone, Eq, PartialEq, Hash)]
 #[reflect(Component)]
 pub enum CardVisibility {
     #[default]

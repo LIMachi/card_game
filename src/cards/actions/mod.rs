@@ -43,27 +43,27 @@ pub enum ActionSet {
 
 #[derive(Component, Reflect, Default, Debug, Clone)]
 #[reflect(Component)]
-pub struct OnPlay(pub ActionSet);
+pub struct OnPlay(pub ActionSet, pub bool);
 
 #[derive(Component, Reflect, Default, Debug, Clone)]
 #[reflect(Component)]
-pub struct OnScrap(pub ActionSet);
+pub struct OnScrap(pub ActionSet, pub bool);
 
 #[derive(Component, Reflect, Default, Debug, Clone)]
 #[reflect(Component)]
-pub struct ComboBlob(pub ActionSet);
+pub struct ComboBlob(pub ActionSet, pub bool);
 
 #[derive(Component, Reflect, Default, Debug, Clone)]
 #[reflect(Component)]
-pub struct ComboMachineCult(pub ActionSet);
+pub struct ComboMachineCult(pub ActionSet, pub bool);
 
 #[derive(Component, Reflect, Default, Debug, Clone)]
 #[reflect(Component)]
-pub struct ComboTradeFederation(pub ActionSet);
+pub struct ComboTradeFederation(pub ActionSet, pub bool);
 
 #[derive(Component, Reflect, Default, Debug, Clone)]
 #[reflect(Component)]
-pub struct ComboStarEmpire(pub ActionSet);
+pub struct ComboStarEmpire(pub ActionSet, pub bool);
 
 pub struct GameActionsPlugin;
 
