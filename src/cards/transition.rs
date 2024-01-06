@@ -33,7 +33,11 @@ pub struct StartTransition {
     pub length: f32,
 }
 
-#[derive(Reflect, Default, Debug)]
+// #[derive(Component, Reflect, Default, Debug, Copy, Clone)]
+// #[reflect(Component)]
+// pub struct FinishedTransitionCallback();
+
+#[derive(Reflect, Default, Debug, Copy, Clone)]
 pub struct PositionGenerator {
     pub root: Vec3,
     pub index_offset: Vec3,
@@ -45,22 +49,6 @@ pub struct PositionGenerator {
 #[reflect(Resource)]
 pub struct TransitionTransforms {
     pub positions: HashMap<(CardOwners, Stacks), PositionGenerator>,
-}
-
-impl Default for TransitionTransforms {
-    fn default() -> Self {
-        let mut positions = HashMap::new();
-        positions.insert(
-            (CardOwners::Market, Stacks::MarketDeck),
-            PositionGenerator {
-                root: Vec3::new(30., 0., 0.),
-                index_offset: Vec3::new(0., -CARD_DEPTH, 0.),
-                inverted_indexes: true,
-                keep_base_vertical: true,
-            },
-        );
-        Self { positions }
-    }
 }
 
 impl TransitionTransforms {
@@ -165,7 +153,7 @@ pub fn mirror_resource_change(
         ),
         Without<CardTransition>,
     >,
-    mut transitioning: Query<(Entity, &mut CardTransition, &Transform, &CardKinds)>,
+    mut transitioning: Query<(&mut CardTransition, &Transform, &CardKinds)>,
 ) {
     if transforms.is_changed() {
         for (card, &owner, &stack, &index, &visibility, transform, kind) in still.iter() {
@@ -194,7 +182,7 @@ pub fn mirror_resource_change(
                 length: 0.0,
             });
         }
-        for (card, mut transition, transform, kind) in transitioning.iter_mut() {
+        for (mut transition, transform, kind) in transitioning.iter_mut() {
             transition.next_transform =
                 transforms.bake_transform(&transition.next, &stacks, transform, kind);
         }

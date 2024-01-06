@@ -1,7 +1,6 @@
 pub mod execute;
 
-use crate::cards::components::kinds::CardKinds;
-use bevy::prelude::*;
+use crate::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Default, Reflect, Clone, Eq, PartialEq)]

@@ -7,6 +7,7 @@ pub mod assets;
 pub mod components;
 pub mod spawn;
 pub mod transition;
+mod transitions_transforms;
 
 pub const CARD_DEPTH: f32 = 2. / 70.;
 pub const CARD_WIDTH: f32 = 6.3;
@@ -20,10 +21,10 @@ pub mod prelude {
             ActionSet, ComboBlob, ComboMachineCult, ComboStarEmpire, ComboTradeFederation, OnPlay,
             OnScrap,
         },
-        CARD_DEPTH,
-        CARD_HEIGHT,
-        CARD_WIDTH,
-        components::prelude::*, spawn::SpawnCard, transition::{CardTransition, StartTransition, TransitionTransforms},
+        components::prelude::*,
+        spawn::SpawnCard,
+        transition::{CardTransition, StartTransition, TransitionTransforms},
+        CARD_DEPTH, CARD_HEIGHT, CARD_WIDTH,
     };
 }
 

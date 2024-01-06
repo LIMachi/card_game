@@ -4,11 +4,7 @@ pub const MAXIMUM_PLAYERS: usize = 2;
 
 #[derive(Component, Reflect, Default, Debug)]
 #[reflect(Component)]
-pub struct Player1;
-
-#[derive(Component, Reflect, Default, Debug)]
-#[reflect(Component)]
-pub struct Player2;
+pub struct Player<const ID: u8>;
 
 #[derive(Component, Reflect, Default, Debug)]
 #[reflect(Component)]
@@ -34,7 +30,7 @@ impl Plugin for PlayerPlugin {
             .register_type::<PlayerAttack>()
             .register_type::<PlayerEconomy>()
             .register_type::<PlayerActionTracker>()
-            .register_type::<Player1>()
-            .register_type::<Player2>();
+            .register_type::<Player<0>>()
+            .register_type::<Player<1>>();
     }
 }

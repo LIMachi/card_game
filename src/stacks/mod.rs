@@ -23,6 +23,25 @@ pub enum Stacks {
     Log,
 }
 
+impl Stacks {
+    pub fn keep_empty_spaces(&self) -> bool {
+        match self {
+            Stacks::MarketDeck => false,
+            Stacks::MarketRow => true,
+            Stacks::JokerDeck => false,
+            Stacks::Scrapyard => false,
+            Stacks::PlayerDeck => false,
+            Stacks::Hand => true,
+            Stacks::UsedCards => true,
+            Stacks::Bases => false,
+            Stacks::DiscardPile => false,
+            Stacks::Focused => false,
+            Stacks::Selection => true,
+            Stacks::Log => true,
+        }
+    }
+}
+
 #[derive(Component, Reflect, Default, Debug)]
 #[reflect(Component)]
 pub struct MarketDeck;

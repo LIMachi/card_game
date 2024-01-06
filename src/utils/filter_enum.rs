@@ -1,3 +1,4 @@
+use crate::prelude::Component;
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::EntityWorldMut;
 

@@ -1,4 +1,4 @@
-use crate::players::{Player1, Player2, MAXIMUM_PLAYERS};
+use crate::players::{Player, MAXIMUM_PLAYERS};
 use crate::utils::filter_enum::FilterEnumInserter;
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
@@ -26,10 +26,10 @@ impl FilterEnumInserter for CardOwners {
                 entity.insert(MarketOnwed);
             }
             Self::Player(0) => {
-                entity.insert(Player1);
+                entity.insert(Player::<0>);
             }
             Self::Player(1) => {
-                entity.insert(Player2);
+                entity.insert(Player::<1>);
             }
             Self::Player(e) => {
                 panic!(
@@ -47,10 +47,10 @@ impl FilterEnumInserter for CardOwners {
                 entity.remove::<MarketOnwed>();
             }
             Self::Player(0) => {
-                entity.remove::<Player1>();
+                entity.remove::<Player<0>>();
             }
             Self::Player(1) => {
-                entity.remove::<Player2>();
+                entity.remove::<Player<1>>();
             }
             Self::Player(e) => {
                 panic!(
@@ -68,10 +68,10 @@ impl FilterEnumInserter for CardOwners {
                 entity.insert(MarketOnwed);
             }
             Self::Player(0) => {
-                entity.insert(Player1);
+                entity.insert(Player::<0>);
             }
             Self::Player(1) => {
-                entity.insert(Player2);
+                entity.insert(Player::<1>);
             }
             Self::Player(e) => {
                 panic!(
@@ -89,10 +89,10 @@ impl FilterEnumInserter for CardOwners {
                 entity.remove::<MarketOnwed>();
             }
             Self::Player(0) => {
-                entity.remove::<Player1>();
+                entity.remove::<Player<0>>();
             }
             Self::Player(1) => {
-                entity.remove::<Player2>();
+                entity.remove::<Player<1>>();
             }
             Self::Player(e) => {
                 panic!(

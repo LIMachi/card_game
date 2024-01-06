@@ -1,5 +1,5 @@
-use crate::cards::actions::{Action, ActionSet};
-use bevy::prelude::*;
+use super::Action;
+use crate::prelude::*;
 
 impl ActionSet {
     pub fn execute(&self, world: &mut World, card: Entity) {
