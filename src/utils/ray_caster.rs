@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy_rapier3d::prelude::*;
 
-#[derive(Reflect, Debug, PartialEq)]
+#[derive(Reflect, Debug, PartialEq, Copy, Clone)]
 pub struct RayCastHit {
     pub entity: Entity,
     pub toi: f32,
@@ -14,10 +14,10 @@ pub struct RayCastHit {
     pub percent: Vec2,
 }
 
-#[derive(Component, Reflect, Default, Debug)]
+#[derive(Component, Reflect, Default, Debug, Copy, Clone)]
 #[reflect(Component)]
 pub struct RayCaster {
-    hit: Option<RayCastHit>,
+    pub hit: Option<RayCastHit>,
 }
 
 pub fn update_ray_cast(

@@ -1,23 +1,21 @@
-use crate::cards::assets::{Deck, LoadedSet};
 use crate::game::events::{GameEvent, GameEvents, GameEventsPlugin};
 use crate::prelude::*;
+use crate::utils::ray_caster::RayCasterPlugin;
 use bevy_rapier3d::prelude::{NoUserData, RapierPhysicsPlugin};
 
 mod cards;
-mod debug;
 mod game;
 mod players;
-mod ray_caster;
 mod stacks;
 mod states;
 mod utils;
 
 pub mod prelude {
     pub use super::cards::prelude::*;
-    pub use super::ray_caster::RayCaster;
     pub use super::stacks::*;
     pub use super::states::app::AppStates;
     pub use super::utils::filter_enum::FilterEnumInserter;
+    pub use super::utils::ray_caster::RayCaster;
     pub use bevy::prelude::*;
 }
 
@@ -47,95 +45,18 @@ pub fn spawn_light(mut commands: Commands) {
     });
 }
 
-// pub fn spawn_decks(mut commands: Commands, set: Res<LoadedSet>, decks: Res<Assets<Deck>>) {
-//     if let Some(deck) = decks.get(&set.market_deck) {
-//         let mut index = 0;
-//         for (qty, name) in &deck.0 {
-//             for _ in 0..*qty {
-//                 let mut ec = commands.spawn((
-//                     CardIndex(index),
-//                     SpawnCard(name.clone()),
-//                     SpatialBundle::default(),
-//                     Name::new(name.clone()),
-//                     StartTransition {
-//                         owner: CardOwners::Market,
-//                         stack: Stacks::MarketDeck,
-//                         index: CardIndex(index),
-//                         visibility: CardVisibility::Visible,
-//                         length: 0.0,
-//                     },
-//                 ));
-//                 CardOwners::Market.insert(&mut ec);
-//                 Stacks::MarketDeck.insert(&mut ec);
-//                 index += 1;
-//             }
-//         }
-//     }
-//     if let Some(deck) = decks.get(&set.player_deck) {
-//         let mut index = 0;
-//         for (qty, name) in &deck.0 {
-//             for _ in 0..*qty {
-//                 let mut ec = commands.spawn((
-//                     CardIndex(index),
-//                     SpawnCard(name.clone()),
-//                     SpatialBundle::from_transform(Transform::from_xyz(
-//                         30.,
-//                         CARD_DEPTH * index as f32,
-//                         -15.,
-//                     )),
-//                     Name::new(name.clone()),
-//                 ));
-//                 CardOwners::Player(0).insert(&mut ec);
-//                 Stacks::PlayerDeck.insert(&mut ec);
-//                 let mut ec = commands.spawn((
-//                     CardIndex(index),
-//                     SpawnCard(name.clone()),
-//                     SpatialBundle::from_transform(Transform::from_xyz(
-//                         30.,
-//                         CARD_DEPTH * index as f32,
-//                         15.,
-//                     )),
-//                     Name::new(name.clone()),
-//                 ));
-//                 CardOwners::Player(1).insert(&mut ec);
-//                 Stacks::PlayerDeck.insert(&mut ec);
-//                 index += 1;
-//             }
-//         }
-//     }
-//     if let Some(deck) = decks.get(&set.joker_deck) {
-//         let mut index = 0;
-//         for (qty, name) in &deck.0 {
-//             for _ in 0..*qty {
-//                 let mut ec = commands.spawn((
-//                     CardIndex(index),
-//                     SpawnCard(name.clone()),
-//                     SpatialBundle::from_transform(
-//                         Transform::from_xyz(-25., CARD_DEPTH * index as f32, 0.)
-//                             .with_rotation(Quat::from_axis_angle(Vec3::Z, 180f32.to_radians())),
-//                     ),
-//                     Name::new(name.clone()),
-//                 ));
-//                 CardOwners::Market.insert(&mut ec);
-//                 Stacks::JokerDeck.insert(&mut ec);
-//                 index += 1;
-//             }
-//         }
-//     }
-// }
-
 fn main() {
     App::new()
         .add_plugins((
             DefaultPlugins,
             RapierPhysicsPlugin::<NoUserData>::default(),
-            ray_caster::RayCasterPlugin,
+            RayCasterPlugin,
             cards::CardsPlugin,
             players::PlayerPlugin,
-            stacks::StacksPlugin,
+            StacksPlugin,
             states::StatesPlugin,
             GameEventsPlugin,
-            debug::DebugPlugin,
+            utils::debug::DebugPlugin,
         ))
         .add_systems(Startup, (spawn_camera, spawn_light))
         .add_systems(

@@ -1,5 +1,5 @@
 use crate::game::routines::{RoutineManager, Routines};
-use crate::players::Player;
+use crate::players::{LocalPlayer, Player};
 use crate::prelude::*;
 use crate::prelude::{
     CardIndex, CardOwners, Commands, DiscardPile, Entity, Hand, PlayerDeck, Query, Stacks,
@@ -12,6 +12,7 @@ pub fn draw_routine<const PLAYER: u8>(
     hand: Query<&CardIndex, (With<Hand>, With<Player<PLAYER>>, Without<PlayerDeck>)>,
     discard_pile: Query<Entity, (With<DiscardPile>, With<Player<PLAYER>>, Without<PlayerDeck>)>,
     deck: Query<(Entity, &CardIndex), (With<PlayerDeck>, With<Player<PLAYER>>)>,
+    local_player: Res<LocalPlayer>,
 ) {
     let mut finished = false;
     let mut send_shuffle = false;
@@ -62,7 +63,11 @@ pub fn draw_routine<const PLAYER: u8>(
                             owner: CardOwners::Player(PLAYER),
                             stack: Stacks::Hand,
                             index: CardIndex(empty_slot as usize),
-                            visibility: CardVisibility::Visible,
+                            visibility: if local_player.0 == PLAYER {
+                                CardVisibility::Visible
+                            } else {
+                                CardVisibility::Hidden
+                            },
                             length: 0.5,
                         });
                     } else {
