@@ -1,3 +1,6 @@
+use crate::players::Player;
+use crate::prelude::{CardIndex, CardOwners, CardVisibility, MarketOnwed, Stacks, StartTransition};
+use crate::stacks::Hand;
 use bevy::diagnostic::DiagnosticsStore;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::prelude::*;
@@ -5,9 +8,14 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_rapier3d::prelude::{DebugRenderContext, RapierDebugRenderPlugin};
 
 pub fn toggle_debug(
+    mut commands: Commands,
     keys: Res<Input<KeyCode>>,
     mut debug: ResMut<DebugRenderContext>,
     mut root: Query<&mut Visibility, With<FpsRoot>>,
+    enemy_hand: Query<
+        (Entity, &CardOwners, &CardIndex),
+        (With<Hand>, Without<MarketOnwed>, Without<Player<0>>),
+    >,
 ) {
     if keys.just_pressed(KeyCode::Apps) {
         debug.enabled ^= true;
@@ -16,6 +24,19 @@ pub fn toggle_debug(
             Visibility::Visible
         } else {
             Visibility::Hidden
+        };
+        for (card, &owner, &index) in enemy_hand.iter() {
+            commands.entity(card).insert(StartTransition {
+                owner,
+                stack: Stacks::Hand,
+                index,
+                visibility: if debug.enabled {
+                    CardVisibility::Visible
+                } else {
+                    CardVisibility::Hidden
+                },
+                length: 0.0,
+            });
         }
     }
 }

@@ -19,7 +19,7 @@ pub fn shuffle(
         owner,
         stack,
         running,
-    }) = manager.routine()
+    }) = manager.routine_mut()
     {
         match (*owner, *stack) {
             (CardOwners::Player(0), Stacks::PlayerDeck) => {

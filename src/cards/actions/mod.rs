@@ -1,4 +1,5 @@
 pub mod execute;
+mod uniques;
 
 use crate::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -37,7 +38,6 @@ pub enum ActionSet {
     All(Vec<Action>),
     Any(Vec<Action>),
     OneOf(Action, Action),
-    UniquePassive,
 }
 
 #[derive(Component, Reflect, Default, Debug, Clone)]

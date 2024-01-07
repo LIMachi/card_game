@@ -14,7 +14,7 @@ pub fn reload_market(
         slot,
         card,
         scrapyard_to_deck,
-    }) = manager.routine()
+    }) = manager.routine_mut()
     {
         if let Some(card) = card {
             if market.contains(*card) {

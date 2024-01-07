@@ -1,12 +1,15 @@
-mod discard;
+mod activate_card;
+mod choice;
 mod draw;
+mod move_to_stack;
 mod reload_market;
 mod shuffle;
 
+use crate::game::events::CardActions;
 use crate::prelude::*;
 use std::collections::VecDeque;
 
-#[derive(Reflect, Debug, Default)]
+#[derive(Reflect, Debug, Default, Clone)]
 pub enum Routines {
     #[default]
     Debug,
@@ -20,15 +23,23 @@ pub enum Routines {
         stack: Stacks,
         running: bool,
     },
-    Discard {
-        player: u8,
-        card: Entity,
-        running: bool,
-    },
     ReloadMarket {
         slot: u8,
         card: Option<Entity>,
         scrapyard_to_deck: bool,
+    },
+    PushCardToStack {
+        card: Entity,
+        owner: CardOwners,
+        stack: Stacks,
+        index: Option<usize>, //None -> search best slot to insert
+        visibility: CardVisibility,
+        running: bool,
+    },
+    ActivateCard {
+        card: Entity,
+        set: ActionSet,
+        running: bool,
     },
 }
 
@@ -37,8 +48,16 @@ pub enum Routines {
 pub struct RoutineManager(pub VecDeque<Routines>);
 
 impl RoutineManager {
-    pub fn routine(&mut self) -> Option<&mut Routines> {
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    pub fn routine_mut(&mut self) -> Option<&mut Routines> {
         self.0.front_mut()
+    }
+
+    pub fn routine(&self) -> Option<Routines> {
+        self.0.front().cloned()
     }
 
     pub fn finish(&mut self) {
@@ -78,9 +97,35 @@ impl RoutineManager {
     }
 
     pub fn discard(&mut self, player: u8, card: Entity) {
-        self.0.push_back(Routines::Discard {
-            player,
+        self.0.push_back(Routines::PushCardToStack {
             card,
+            owner: CardOwners::Player(player),
+            stack: Stacks::DiscardPile,
+            index: Some(0),
+            visibility: CardVisibility::Visible,
+            running: false,
+        });
+    }
+
+    pub fn play(&mut self, player: u8, card: Entity, slot: usize, base: bool) {
+        self.0.push_back(Routines::PushCardToStack {
+            card,
+            owner: CardOwners::Player(player),
+            stack: if base {
+                Stacks::Bases
+            } else {
+                Stacks::UsedCards
+            },
+            index: Some(if base { 0 } else { slot }),
+            visibility: CardVisibility::Visible,
+            running: false,
+        });
+    }
+
+    pub fn activate_card(&mut self, card: Entity, set: ActionSet) {
+        self.0.push_back(Routines::ActivateCard {
+            card,
+            set,
             running: false,
         });
     }
@@ -100,8 +145,8 @@ impl Plugin for RoutinesPlugin {
                     draw::draw_routine::<1>,
                     shuffle::shuffle,
                     reload_market::reload_market,
-                    discard::discard::<0>,
-                    discard::discard::<1>,
+                    move_to_stack::move_to_stack,
+                    activate_card::activate_card,
                 ),
             );
     }

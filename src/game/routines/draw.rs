@@ -5,6 +5,7 @@ use crate::prelude::{
     CardIndex, CardOwners, Commands, DiscardPile, Entity, Hand, PlayerDeck, Query, Stacks,
     StartTransition, With, Without,
 };
+use bevy_rapier3d::prelude::DebugRenderContext;
 
 pub fn draw_routine<const PLAYER: u8>(
     mut commands: Commands,
@@ -13,6 +14,7 @@ pub fn draw_routine<const PLAYER: u8>(
     discard_pile: Query<Entity, (With<DiscardPile>, With<Player<PLAYER>>, Without<PlayerDeck>)>,
     deck: Query<(Entity, &CardIndex), (With<PlayerDeck>, With<Player<PLAYER>>)>,
     local_player: Res<LocalPlayer>,
+    debug: Res<DebugRenderContext>,
 ) {
     let mut finished = false;
     let mut send_shuffle = false;
@@ -20,7 +22,7 @@ pub fn draw_routine<const PLAYER: u8>(
         player,
         drawn,
         discard_to_deck,
-    }) = manager.routine()
+    }) = manager.routine_mut()
     {
         if *player != PLAYER {
             return;
@@ -63,7 +65,7 @@ pub fn draw_routine<const PLAYER: u8>(
                             owner: CardOwners::Player(PLAYER),
                             stack: Stacks::Hand,
                             index: CardIndex(empty_slot as usize),
-                            visibility: if local_player.0 == PLAYER {
+                            visibility: if local_player.0 == PLAYER || debug.enabled {
                                 CardVisibility::Visible
                             } else {
                                 CardVisibility::Hidden

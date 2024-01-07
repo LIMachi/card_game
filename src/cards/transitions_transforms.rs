@@ -65,9 +65,9 @@ impl Default for TransitionTransforms {
             positions.insert(
                 (CardOwners::Player(p), Stacks::UsedCards),
                 PositionGenerator {
-                    root: Vec3::new(-32., 0., if p == 0 { -15. } else { 15. }),
-                    index_offset: Vec3::new(0., -CARD_DEPTH, 0.),
-                    inverted_indexes: true,
+                    root: Vec3::new(23.5, CARD_DEPTH, if p == 0 { -10. } else { 10. }),
+                    index_offset: Vec3::new(-CARD_WIDTH * 1.4, 0., 0.),
+                    inverted_indexes: false,
                     keep_base_vertical: true,
                 },
             );

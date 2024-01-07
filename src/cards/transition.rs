@@ -4,6 +4,10 @@ use crate::utils::filter_enum::FilterEnumInserter;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 
+#[derive(Resource, Reflect, Default, Debug, Copy, Clone)]
+#[reflect(Resource)]
+pub struct PlayBackSpeed(pub f32);
+
 #[derive(Reflect, Default, Debug, Copy, Clone)]
 pub struct CardStateSnapshot {
     owner: CardOwners,
@@ -106,6 +110,7 @@ pub fn start_transition(
         &CardKinds,
     )>,
     stacks: Query<&Stacks>,
+    default_len: Res<PlayBackSpeed>,
 ) {
     for (card, &transition, &owner, &stack, &index, &visibility, transform, kind) in
         transitions.iter()
@@ -132,7 +137,8 @@ pub fn start_transition(
             next,
             next_transform,
             timer: 0.0,
-            length: transition.length,
+            // length: transition.length,
+            length: default_len.0,
         });
     }
 }
@@ -229,6 +235,8 @@ impl Plugin for TransitionsPlugin {
             .register_type::<PositionGenerator>()
             .register_type::<TransitionTransforms>()
             .init_resource::<TransitionTransforms>()
+            .register_type::<PlayBackSpeed>()
+            .insert_resource(PlayBackSpeed(0.5))
             .add_systems(PostUpdate, (start_transition, mirror_resource_change))
             .add_systems(PreUpdate, update_transition);
     }

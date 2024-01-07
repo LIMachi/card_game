@@ -1,4 +1,5 @@
 use crate::game::events::{GameEvent, GameEvents, GameEventsPlugin};
+use crate::game::GamePlugin;
 use crate::prelude::*;
 use crate::utils::ray_caster::RayCasterPlugin;
 use bevy_rapier3d::prelude::{NoUserData, RapierPhysicsPlugin};
@@ -55,7 +56,7 @@ fn main() {
             players::PlayerPlugin,
             StacksPlugin,
             states::StatesPlugin,
-            GameEventsPlugin,
+            GamePlugin,
             utils::debug::DebugPlugin,
         ))
         .add_systems(Startup, (spawn_camera, spawn_light))

@@ -1,5 +1,4 @@
 use crate::game::event_handlers::event_handler_dispatcher;
-use crate::game::routines::RoutinesPlugin;
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 
@@ -39,6 +38,7 @@ pub enum GameEvents {
     BuyCard(BuyFrom),
     Attack {
         player: u8,
+        as_much_as_possible: bool,
         base_index: Option<u32>,
     },
     PassTurn,
@@ -49,9 +49,9 @@ pub enum GameEvents {
 #[derive(Resource, Reflect, Debug, Default)]
 #[reflect(Resource)]
 pub struct GameEvent {
-    processed: bool,
-    flags: usize,
-    head: usize,
+    processed: bool, //if true, no event will be fired while the head stays there
+    flags: usize,    //general purpose flags available to game events if they need local data
+    head: usize,     //log access offset by 1
     log: Vec<GameEvents>,
 }
 
@@ -61,15 +61,15 @@ impl GameEvent {
     }
 
     pub fn get_unprocessed(&self) -> Option<&GameEvents> {
-        if !self.processed {
-            self.log.get(self.head)
+        if !self.processed && self.head > 0 {
+            self.log.get(self.head - 1)
         } else {
             None
         }
     }
 
     pub fn push(&mut self, event: GameEvents) -> &mut Self {
-        if self.processed && self.head == self.log.len() - 1 {
+        if self.head == 0 || (self.processed && self.head == self.log.len()) {
             self.processed = false;
             self.head += 1;
         }
@@ -79,6 +79,7 @@ impl GameEvent {
 
     pub fn set_processed(&mut self) -> Option<&GameEvents> {
         if !self.processed {
+            self.flags = 0;
             if self.head == self.log.len() {
                 self.processed = true;
             } else {
@@ -86,6 +87,19 @@ impl GameEvent {
             }
         }
         self.get_unprocessed()
+    }
+
+    pub fn cancel(&mut self) -> Option<GameEvents> {
+        if self.head == self.log.len() {
+            self.flags = 0;
+            self.processed = true;
+        }
+        if self.head > 0 {
+            self.head -= 1;
+            Some(self.log.remove(self.head))
+        } else {
+            None
+        }
     }
 }
 
@@ -95,8 +109,6 @@ impl Plugin for GameEventsPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<GameEvent>()
             .init_resource::<GameEvent>()
-            .add_plugins(RoutinesPlugin)
-            // .add_systems(Startup, dispatcher_setup)
             .add_systems(Update, event_handler_dispatcher);
     }
 }

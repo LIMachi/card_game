@@ -229,8 +229,8 @@ pub fn update_attack_button(
     for (interaction, mut background, mut border, target) in button.iter_mut() {
         match interaction {
             Interaction::Pressed => {
-                //FIXME: missing check
                 event.push(GameEvents::Attack {
+                    as_much_as_possible: true, //FIXME: should replace this ui with actual buttons that react to other buttons
                     player: target.player,
                     base_index: None,
                 });
