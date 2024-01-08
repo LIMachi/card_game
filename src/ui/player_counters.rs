@@ -6,6 +6,7 @@ use crate::prelude::{
     FlexDirection, JustifyContent, NodeBundle, Reflect, Style, TextStyle, UiRect, Val,
 };
 use crate::states::turn::TurnStates;
+use crate::ui::UIRoot;
 use bevy_rapier3d::prelude::DebugRenderContext;
 
 #[derive(Component, Debug, Reflect)]
@@ -18,14 +19,17 @@ pub struct EconomyCounterUI;
 pub struct AttackCounterUI;
 
 #[derive(Component, Debug, Reflect)]
-pub struct PassTurnButton;
+pub struct PassTurnButton {
+    pub hovered: bool,
+}
 
 #[derive(Component, Debug, Reflect)]
 pub struct AttackButton {
-    player: u8,
+    // pub player: u8,
+    pub hovered: bool,
 }
 
-pub fn spawn_ui(mut commands: Commands) {
+pub fn spawn_ui(mut commands: Commands, ui_root: Query<Entity, With<UIRoot>>) {
     let life_style = TextStyle {
         font_size: 25.,
         color: Color::GREEN,
@@ -52,19 +56,12 @@ pub fn spawn_ui(mut commands: Commands) {
         ..Default::default()
     };
     commands
-        .spawn(NodeBundle {
-            style: Style {
-                width: Val::Percent(100.),
-                height: Val::Percent(100.),
-                justify_content: JustifyContent::Default,
-                flex_direction: FlexDirection::Column,
-                ..Default::default()
-            },
-            ..Default::default()
-        })
+        .entity(ui_root.get_single().unwrap())
         .with_children(|root| {
             root.spawn((
-                AttackButton { player: 1 },
+                AttackButton {
+                    /*player: 1*/ hovered: false,
+                },
                 ButtonBundle {
                     style: Style {
                         width: Val::Px(160.),
@@ -138,7 +135,7 @@ pub fn spawn_ui(mut commands: Commands) {
                 )),
             );
             root.spawn((
-                PassTurnButton,
+                PassTurnButton { hovered: false },
                 ButtonBundle {
                     style: Style {
                         width: Val::Px(160.),
@@ -220,57 +217,86 @@ pub fn update_attack_button(
             &Interaction,
             &mut BackgroundColor,
             &mut BorderColor,
-            &AttackButton,
+            &mut AttackButton,
         ),
         Changed<Interaction>,
     >,
-    mut event: ResMut<GameEvent>,
+    // mut event: ResMut<GameEvent>,
+    turn: Res<State<TurnStates>>,
+    debug: Res<DebugRenderContext>,
+    local_player: Res<LocalPlayer>,
 ) {
-    for (interaction, mut background, mut border, target) in button.iter_mut() {
-        match interaction {
-            Interaction::Pressed => {
-                event.push(GameEvents::Attack {
-                    as_much_as_possible: true, //FIXME: should replace this ui with actual buttons that react to other buttons
-                    player: target.player,
-                    base_index: None,
-                });
+    if *turn.get() == TurnStates::PlayerTurn(local_player.0) || debug.enabled {
+        for (&interaction, mut background, mut border, mut target) in button.iter_mut() {
+            match interaction {
+                // Interaction::Pressed => {
+                //     event.push(GameEvents::Attack {
+                //         as_much_as_possible: true, //FIXME: should replace this ui with actual buttons that react to other buttons
+                //         player: target.player,
+                //         base_index: None,
+                //     });
+                // }
+                Interaction::Hovered | Interaction::Pressed => {
+                    target.hovered = true;
+                }
+                Interaction::None => {
+                    target.hovered = false;
+                }
             }
-            Interaction::Hovered => {}
-            Interaction::None => {}
         }
+    } else {
+        // for (interaction, mut background, mut border, _) in button.iter_mut() {
+        //     match interaction {
+        //         Interaction::None => {
+        //             *background = Color::rgba(0.7, 0.7, 1., 1.).into();
+        //             *border = Color::MIDNIGHT_BLUE.into();
+        //         }
+        //         _ => {
+        //             *background = Color::MAROON.into();
+        //             *border = Color::RED.into();
+        //         }
+        //     }
+        // }
     }
 }
 
 pub fn update_pass_turn_button(
     mut button: Query<
-        (&Interaction, &mut BackgroundColor, &mut BorderColor),
-        (Changed<Interaction>, With<PassTurnButton>),
+        (
+            &Interaction,
+            &mut BackgroundColor,
+            &mut BorderColor,
+            &mut PassTurnButton,
+        ),
+        Changed<Interaction>,
     >,
     turn: Res<State<TurnStates>>,
     debug: Res<DebugRenderContext>,
-    mut event: ResMut<GameEvent>,
+    // mut event: ResMut<GameEvent>,
     local_player: Res<LocalPlayer>,
 ) {
     if *turn.get() == TurnStates::PlayerTurn(local_player.0) || debug.enabled {
-        for (interaction, mut background, mut border) in button.iter_mut() {
+        for (interaction, mut background, mut border, mut target) in button.iter_mut() {
             match interaction {
-                Interaction::Pressed => {
-                    *background = Color::rgba(0.4, 0.4, 1., 1.).into();
-                    *border = Color::rgba(0.1, 0.1, 0.3, 1.).into();
-                    event.push(GameEvents::PassTurn);
-                }
-                Interaction::Hovered => {
+                // Interaction::Pressed => {
+                //     *background = Color::rgba(0.4, 0.4, 1., 1.).into();
+                //     *border = Color::rgba(0.1, 0.1, 0.3, 1.).into();
+                //     event.push(GameEvents::PassTurn);
+                // }
+                Interaction::Hovered | Interaction::Pressed => {
                     *background = Color::rgba(0.6, 0.6, 1., 1.).into();
                     *border = Color::rgba(0.2, 0.2, 0.6, 1.).into();
+                    target.hovered = true;
                 }
                 Interaction::None => {
                     *background = Color::rgba(0.7, 0.7, 1., 1.).into();
                     *border = Color::MIDNIGHT_BLUE.into();
+                    target.hovered = false;
                 }
             }
         }
     } else {
-        for (interaction, mut background, mut border) in button.iter_mut() {
+        for (interaction, mut background, mut border, _) in button.iter_mut() {
             match interaction {
                 Interaction::None => {
                     *background = Color::rgba(0.7, 0.7, 1., 1.).into();

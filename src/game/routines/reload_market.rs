@@ -28,6 +28,7 @@ pub fn reload_market(
             *scrapyard_to_deck = false;
         } else {
             if deck.is_empty() {
+                //FIXME: check for empty market rule
                 if !scrapyard.is_empty() {
                     for card in scrapyard.iter() {
                         commands.entity(card).insert(StartTransition {
@@ -40,6 +41,8 @@ pub fn reload_market(
                     }
                     *scrapyard_to_deck = true;
                     return;
+                } else {
+                    finished = true;
                 }
             } else {
                 for (e, index) in deck.iter() {

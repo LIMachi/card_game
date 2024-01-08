@@ -1,6 +1,3 @@
-pub mod ui;
-
-use crate::players::ui::CountersUIPlugin;
 use crate::prelude::{CardOwners, FilterEnumInserter};
 use bevy::prelude::*;
 
@@ -79,7 +76,6 @@ impl Plugin for PlayerPlugin {
             .register_type::<PlayerActionTracker>()
             .register_type::<Player<0>>()
             .register_type::<Player<1>>()
-            .add_systems(Startup, spawn_counters)
-            .add_plugins(CountersUIPlugin);
+            .add_systems(Startup, spawn_counters);
     }
 }

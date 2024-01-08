@@ -7,6 +7,7 @@ pub enum CardActions {
     Primary,
     Ally,
     Scrap,
+    Indexed(u8),
 }
 
 #[derive(Reflect, Serialize, Deserialize, Copy, Clone, Debug)]
@@ -33,7 +34,7 @@ pub enum GameEvents {
     ActivateCard {
         base: bool,
         index: u32,
-        action: CardActions,
+        action: u8,
     },
     BuyCard(BuyFrom),
     Attack {

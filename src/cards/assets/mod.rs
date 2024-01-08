@@ -39,9 +39,11 @@ pub struct LoadedSet {
 }
 
 fn load_decks(mut set: ResMut<LoadedSet>, asset_server: Res<AssetServer>) {
-    set.market_deck = asset_server.load("market.deck.ron");
-    set.player_deck = asset_server.load("player.deck.ron");
-    set.joker_deck = asset_server.load("explorer.deck.ron");
+    //TODO: add selection of set/game mode
+    let set_name = "debug_bases";
+    set.market_deck = asset_server.load(format!("sets/{set_name}/market.deck.ron"));
+    set.player_deck = asset_server.load(format!("sets/{set_name}/player.deck.ron"));
+    set.joker_deck = asset_server.load(format!("sets/{set_name}/explorer.deck.ron"));
 }
 
 fn load_cards(

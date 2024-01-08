@@ -29,6 +29,10 @@ pub enum CardVisibility {
     Visible,
 }
 
+#[derive(Component, Reflect, Default)]
+#[reflect(Component)]
+pub struct Focused;
+
 pub struct CardComponentsPlugin;
 
 impl Plugin for CardComponentsPlugin {
@@ -36,6 +40,7 @@ impl Plugin for CardComponentsPlugin {
         app.register_type::<CardIndex>()
             .register_type::<CardCost>()
             .register_type::<CardVisibility>()
+            .register_type::<Focused>()
             .add_plugins((
                 factions::FactionsPlugin,
                 kinds::KindsPlugin,

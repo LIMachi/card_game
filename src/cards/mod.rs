@@ -1,11 +1,9 @@
-use crate::cards::click::card_click_handler;
 use crate::cards::spawn::spawn_card;
 use crate::states::app::AppStates;
 use bevy::prelude::*;
 
 pub mod actions;
 pub mod assets;
-mod click;
 pub mod components;
 pub mod spawn;
 pub mod transition;
@@ -19,10 +17,7 @@ pub struct CardsPlugin;
 
 pub mod prelude {
     pub use super::{
-        actions::{
-            ActionSet, ComboBlob, ComboMachineCult, ComboStarEmpire, ComboTradeFederation, OnPlay,
-            OnScrap,
-        },
+        actions::ActionSet,
         components::prelude::*,
         spawn::SpawnCard,
         transition::{CardTransition, StartTransition, TransitionTransforms},
@@ -38,7 +33,6 @@ impl Plugin for CardsPlugin {
             components::CardComponentsPlugin,
             transition::TransitionsPlugin,
         ))
-        .add_systems(PreUpdate, spawn_card.run_if(in_state(AppStates::Playing)))
-        .add_systems(Update, card_click_handler);
+        .add_systems(PreUpdate, spawn_card.run_if(in_state(AppStates::Playing)));
     }
 }

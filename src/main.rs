@@ -9,6 +9,7 @@ mod game;
 mod players;
 mod stacks;
 mod states;
+mod ui;
 mod utils;
 
 pub mod prelude {
@@ -58,6 +59,7 @@ fn main() {
             states::StatesPlugin,
             GamePlugin,
             utils::debug::DebugPlugin,
+            ui::UIPlugin,
         ))
         .add_systems(Startup, (spawn_camera, spawn_light))
         .add_systems(

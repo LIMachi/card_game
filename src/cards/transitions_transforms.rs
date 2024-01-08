@@ -42,6 +42,15 @@ impl Default for TransitionTransforms {
                 keep_base_vertical: false,
             },
         );
+        positions.insert(
+            (CardOwners::Market, Stacks::Focused),
+            PositionGenerator {
+                root: Vec3::new(0., -30., 0.),
+                index_offset: Vec3::new(0., 0., 0.),
+                inverted_indexes: false,
+                keep_base_vertical: false,
+            },
+        );
 
         for p in 0..=1 {
             positions.insert(
@@ -74,9 +83,9 @@ impl Default for TransitionTransforms {
             positions.insert(
                 (CardOwners::Player(p), Stacks::Bases),
                 PositionGenerator {
-                    root: Vec3::new(-22., CARD_DEPTH, if p == 0 { -15. } else { 15. }),
-                    index_offset: Vec3::new(0., CARD_DEPTH, if p == 0 { 0.5 } else { 0.5 }),
-                    inverted_indexes: true,
+                    root: Vec3::new(-24., CARD_DEPTH, if p == 0 { -17. } else { 17. }),
+                    index_offset: Vec3::new(0.95, CARD_DEPTH, if p == 0 { 0.5 } else { -0.5 }),
+                    inverted_indexes: false,
                     keep_base_vertical: false,
                 },
             );
@@ -86,7 +95,7 @@ impl Default for TransitionTransforms {
                     root: Vec3::new(-32., 0., if p == 0 { -15. } else { 15. }),
                     index_offset: Vec3::new(0., -CARD_DEPTH, 0.),
                     inverted_indexes: true,
-                    keep_base_vertical: false,
+                    keep_base_vertical: true,
                 },
             );
         }

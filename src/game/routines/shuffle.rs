@@ -30,17 +30,21 @@ pub fn shuffle(
                     finished = true;
                 } else {
                     let mut v: Vec<Entity> = player_0_deck.iter().collect();
-                    v.shuffle(&mut thread_rng());
-                    for (i, e) in v.iter().enumerate() {
-                        commands.entity(*e).insert(StartTransition {
-                            owner: *owner,
-                            stack: *stack,
-                            index: CardIndex(i),
-                            visibility: CardVisibility::Hidden,
-                            length: 0.5,
-                        });
+                    if !v.is_empty() {
+                        v.shuffle(&mut thread_rng());
+                        for (i, e) in v.iter().enumerate() {
+                            commands.entity(*e).insert(StartTransition {
+                                owner: *owner,
+                                stack: *stack,
+                                index: CardIndex(i),
+                                visibility: CardVisibility::Hidden,
+                                length: 0.5,
+                            });
+                        }
+                        *running = true;
+                    } else {
+                        finished = true;
                     }
-                    *running = true;
                 }
             }
             (CardOwners::Player(1), Stacks::PlayerDeck) => {
@@ -51,17 +55,21 @@ pub fn shuffle(
                     finished = true;
                 } else {
                     let mut v: Vec<Entity> = player_1_deck.iter().collect();
-                    v.shuffle(&mut thread_rng());
-                    for (i, e) in v.iter().enumerate() {
-                        commands.entity(*e).insert(StartTransition {
-                            owner: *owner,
-                            stack: *stack,
-                            index: CardIndex(i),
-                            visibility: CardVisibility::Hidden,
-                            length: 0.5,
-                        });
+                    if !v.is_empty() {
+                        v.shuffle(&mut thread_rng());
+                        for (i, e) in v.iter().enumerate() {
+                            commands.entity(*e).insert(StartTransition {
+                                owner: *owner,
+                                stack: *stack,
+                                index: CardIndex(i),
+                                visibility: CardVisibility::Hidden,
+                                length: 0.5,
+                            });
+                        }
+                        *running = true;
+                    } else {
+                        finished = true;
                     }
-                    *running = true;
                 }
             }
             (CardOwners::Market, Stacks::MarketDeck) => {
@@ -72,17 +80,21 @@ pub fn shuffle(
                     finished = true;
                 } else {
                     let mut v: Vec<Entity> = market_deck.iter().collect();
-                    v.shuffle(&mut thread_rng());
-                    for (i, e) in v.iter().enumerate() {
-                        commands.entity(*e).insert(StartTransition {
-                            owner: *owner,
-                            stack: *stack,
-                            index: CardIndex(i),
-                            visibility: CardVisibility::Hidden,
-                            length: 0.5,
-                        });
+                    if !v.is_empty() {
+                        v.shuffle(&mut thread_rng());
+                        for (i, e) in v.iter().enumerate() {
+                            commands.entity(*e).insert(StartTransition {
+                                owner: *owner,
+                                stack: *stack,
+                                index: CardIndex(i),
+                                visibility: CardVisibility::Hidden,
+                                length: 0.5,
+                            });
+                        }
+                        *running = true;
+                    } else {
+                        finished = true;
                     }
-                    *running = true;
                 }
             }
             _ => {}

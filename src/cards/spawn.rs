@@ -1,3 +1,4 @@
+use crate::cards::actions::CardActions;
 use crate::cards::assets::{Card, LoadedModels, LoadedSet};
 use crate::cards::prelude::*;
 use crate::utils::filter_enum::FilterEnumInserter;
@@ -27,29 +28,30 @@ pub fn spawn_card(
             for faction in &card.factions {
                 faction.insert(&mut ec);
             }
-            if card.play != ActionSet::None {
-                ec.insert(OnPlay(card.play.clone(), false));
-            }
-            if card.scrap != ActionSet::None {
-                ec.insert(OnScrap(card.scrap.clone(), false));
-            }
-            for (faction, action) in card.combo.iter() {
-                match faction {
-                    CardFactions::Blob => {
-                        ec.insert(ComboBlob(action.clone(), false));
-                    }
-                    CardFactions::MachineCult => {
-                        ec.insert(ComboMachineCult(action.clone(), false));
-                    }
-                    CardFactions::Neutral => {} //shouldn't be possible TODO: add warning/error
-                    CardFactions::TradeFederation => {
-                        ec.insert(ComboTradeFederation(action.clone(), false));
-                    }
-                    CardFactions::StarEmpire => {
-                        ec.insert(ComboStarEmpire(action.clone(), false));
-                    }
-                }
-            }
+            ec.insert(CardActions::from_serialized_card(card));
+            // if card.play != ActionSet::None {
+            //     ec.insert(OnPlay(card.play.clone(), false));
+            // }
+            // if card.scrap != ActionSet::None {
+            //     ec.insert(OnScrap(card.scrap.clone(), false));
+            // }
+            // for (faction, action) in card.combo.iter() {
+            //     match faction {
+            //         CardFactions::Blob => {
+            //             ec.insert(ComboBlob(action.clone(), false));
+            //         }
+            //         CardFactions::MachineCult => {
+            //             ec.insert(ComboMachineCult(action.clone(), false));
+            //         }
+            //         CardFactions::Neutral => {} //shouldn't be possible TODO: add warning/error
+            //         CardFactions::TradeFederation => {
+            //             ec.insert(ComboTradeFederation(action.clone(), false));
+            //         }
+            //         CardFactions::StarEmpire => {
+            //             ec.insert(ComboStarEmpire(action.clone(), false));
+            //         }
+            //     }
+            // }
             //FIXME: missing combo actions
             ec.with_children(|parent| {
                 parent.spawn(PbrBundle {

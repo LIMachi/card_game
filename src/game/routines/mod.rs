@@ -107,6 +107,17 @@ impl RoutineManager {
         });
     }
 
+    pub fn scrap(&mut self, card: Entity) {
+        self.0.push_back(Routines::PushCardToStack {
+            card,
+            owner: CardOwners::Market,
+            stack: Stacks::Scrapyard,
+            index: Some(0),
+            visibility: CardVisibility::Visible,
+            running: false,
+        });
+    }
+
     pub fn play(&mut self, player: u8, card: Entity, slot: usize, base: bool) {
         self.0.push_back(Routines::PushCardToStack {
             card,

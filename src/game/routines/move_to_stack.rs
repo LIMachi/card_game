@@ -38,34 +38,29 @@ pub fn move_to_stack(
                 all_cards.get(*card)
             {
                 let same_stack = current_stack == *target_stack && current_owner == *target_owner;
-                //move cards that where below the one being discarded up one index if needed
-                if !current_stack.keep_empty_spaces() {
-                    for (&owner, &stack, &index, &visibility, card) in all_cards.iter() {
-                        if !stack.keep_empty_spaces()
-                            && index.0 > current_index.0
-                            && owner == current_owner
-                            && stack == current_stack
-                            && !(same_stack && index.0 < target_index.0)
-                        {
-                            //the card was below the one moved (higher index, same owner and stack)
-                            commands.entity(card).insert(StartTransition {
-                                owner,
-                                stack,
-                                index: CardIndex(index.0 - 1),
-                                visibility,
-                                length: 0.5,
-                            });
-                        }
-                        if !same_stack && owner == *target_owner && stack == *target_stack {
-                            //the card is in the stack that will receive the new card
-                            commands.entity(card).insert(StartTransition {
-                                owner,
-                                stack,
-                                index: CardIndex(index.0 + 1),
-                                visibility,
-                                length: 0.5,
-                            });
-                        }
+                for (&owner, &stack, &index, &visibility, card) in all_cards.iter() {
+                    if !stack.keep_empty_spaces()
+                        && index.0 > current_index.0
+                        && owner == current_owner
+                        && stack == current_stack
+                        && !(same_stack && index.0 < target_index.0)
+                    {
+                        commands.entity(card).insert(StartTransition {
+                            owner,
+                            stack,
+                            index: CardIndex(index.0 - 1),
+                            visibility,
+                            length: 0.5,
+                        });
+                    }
+                    if !same_stack && owner == *target_owner && stack == *target_stack {
+                        commands.entity(card).insert(StartTransition {
+                            owner,
+                            stack,
+                            index: CardIndex(index.0 + 1),
+                            visibility,
+                            length: 0.5,
+                        });
                     }
                 }
                 commands.entity(*card).insert(StartTransition {

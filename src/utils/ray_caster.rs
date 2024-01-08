@@ -12,6 +12,7 @@ pub struct RayCastHit {
     pub relative: Vec3,
     pub back: bool,
     pub percent: Vec2,
+    pub action: Option<u8>,
 }
 
 #[derive(Component, Reflect, Default, Debug, Copy, Clone)]
@@ -63,6 +64,7 @@ pub fn update_ray_cast(
                         relative,
                         back,
                         percent,
+                        action: None,
                     });
                 } else {
                     caster.hit = None;

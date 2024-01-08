@@ -1,3 +1,4 @@
+use crate::cards::components::Focused;
 use crate::cards::prelude::*;
 use crate::stacks::Stacks;
 use crate::utils::filter_enum::FilterEnumInserter;
@@ -37,6 +38,18 @@ pub struct StartTransition {
     pub length: f32,
 }
 
+#[derive(Component, Reflect, Default, Debug, Copy, Clone)]
+#[reflect(Component)]
+pub struct StartFocus {
+    pub length: f32,
+}
+
+#[derive(Component, Reflect, Default, Debug, Copy, Clone)]
+#[reflect(Component)]
+pub struct ResetFocus {
+    pub length: f32,
+}
+
 // #[derive(Component, Reflect, Default, Debug, Copy, Clone)]
 // #[reflect(Component)]
 // pub struct FinishedTransitionCallback();
@@ -60,8 +73,8 @@ impl TransitionTransforms {
         &self,
         snapshot: &CardStateSnapshot,
         stacks: &Query<&Stacks>,
-        card_transform: &Transform,
         card_kind: &CardKinds,
+        focused: bool,
     ) -> Transform {
         let mut out = Transform::from_rotation(Quat::from_axis_angle(
             Vec3::Z,
@@ -71,7 +84,11 @@ impl TransitionTransforms {
                 0.
             },
         ));
-        if let Some(gen) = self.positions.get(&(snapshot.owner, snapshot.stack)) {
+        if let Some(gen) = if !focused {
+            self.positions.get(&(snapshot.owner, snapshot.stack))
+        } else {
+            self.positions.get(&(CardOwners::Market, Stacks::Focused))
+        } {
             let mut index = snapshot.index.0 as f32;
             if gen.inverted_indexes {
                 let mut len = 0;
@@ -86,13 +103,105 @@ impl TransitionTransforms {
             if snapshot.visibility == CardVisibility::Visible
                 && *card_kind != CardKinds::Ship
                 && !gen.keep_base_vertical
-                && card_transform.local_z().z >= 0.5
-            //up vector is at least ~half way up (aka vertical card orientation)
             {
                 out.rotate(Quat::from_axis_angle(Vec3::Y, 90f32.to_radians()));
             }
         }
         out
+    }
+}
+
+pub fn start_focus(
+    mut commands: Commands,
+    transforms: Res<TransitionTransforms>,
+    transitions: Query<(
+        Entity,
+        &StartFocus,
+        &CardOwners,
+        &Stacks,
+        &CardIndex,
+        &CardVisibility,
+        &Transform,
+        &CardKinds,
+    )>,
+    stacks: Query<&Stacks>,
+    speed: Res<PlayBackSpeed>,
+) {
+    for (card, &transition, &owner, &stack, &index, &visibility, transform, kind) in
+        transitions.iter()
+    {
+        let mut ec = commands.entity(card);
+        let next = CardStateSnapshot {
+            owner,
+            stack,
+            index,
+            visibility,
+        };
+        let next_transform = transforms.bake_transform(&next, &stacks, kind, true);
+        ec.insert((
+            Focused,
+            CardTransition {
+                previous: CardStateSnapshot {
+                    owner,
+                    stack,
+                    index,
+                    visibility,
+                },
+                previous_transform: *transform,
+                next,
+                next_transform,
+                timer: 0.0,
+                length: transition.length * speed.0,
+            },
+        ))
+        .remove::<StartFocus>();
+    }
+}
+
+pub fn reset_focus(
+    mut commands: Commands,
+    transforms: Res<TransitionTransforms>,
+    transitions: Query<
+        (
+            Entity,
+            &ResetFocus,
+            &CardOwners,
+            &Stacks,
+            &CardIndex,
+            &CardVisibility,
+            &Transform,
+            &CardKinds,
+        ),
+        With<ResetFocus>,
+    >,
+    stacks: Query<&Stacks>,
+    speed: Res<PlayBackSpeed>,
+) {
+    for (card, &transition, &owner, &stack, &index, &visibility, transform, kind) in
+        transitions.iter()
+    {
+        let mut ec = commands.entity(card);
+        let next = CardStateSnapshot {
+            owner,
+            stack,
+            index,
+            visibility,
+        };
+        let next_transform = transforms.bake_transform(&next, &stacks, kind, false);
+        ec.insert((CardTransition {
+            previous: CardStateSnapshot {
+                owner,
+                stack,
+                index,
+                visibility,
+            },
+            previous_transform: *transform,
+            next,
+            next_transform,
+            timer: 0.0,
+            length: transition.length * speed.0,
+        },))
+            .remove::<(ResetFocus, Focused)>();
     }
 }
 
@@ -110,7 +219,7 @@ pub fn start_transition(
         &CardKinds,
     )>,
     stacks: Query<&Stacks>,
-    default_len: Res<PlayBackSpeed>,
+    speed: Res<PlayBackSpeed>,
 ) {
     for (card, &transition, &owner, &stack, &index, &visibility, transform, kind) in
         transitions.iter()
@@ -122,7 +231,7 @@ pub fn start_transition(
             index: transition.index,
             visibility: transition.visibility,
         };
-        let next_transform = transforms.bake_transform(&next, &stacks, transform, kind);
+        let next_transform = transforms.bake_transform(&next, &stacks, kind, false);
         owner.remove(&mut ec);
         stack.remove(&mut ec);
         ec.remove::<(CardIndex, CardVisibility, StartTransition)>();
@@ -137,8 +246,7 @@ pub fn start_transition(
             next,
             next_transform,
             timer: 0.0,
-            // length: transition.length,
-            length: default_len.0,
+            length: transition.length * speed.0,
         });
     }
 }
@@ -156,13 +264,19 @@ pub fn mirror_resource_change(
             &CardVisibility,
             &Transform,
             &CardKinds,
+            Option<&Focused>,
         ),
         Without<CardTransition>,
     >,
-    mut transitioning: Query<(&mut CardTransition, &Transform, &CardKinds)>,
+    mut transitioning: Query<(
+        &mut CardTransition,
+        &Transform,
+        &CardKinds,
+        Option<&Focused>,
+    )>,
 ) {
     if transforms.is_changed() {
-        for (card, &owner, &stack, &index, &visibility, transform, kind) in still.iter() {
+        for (card, &owner, &stack, &index, &visibility, transform, kind, focused) in still.iter() {
             let mut ec = commands.entity(card);
             let next = CardStateSnapshot {
                 owner,
@@ -170,10 +284,7 @@ pub fn mirror_resource_change(
                 index,
                 visibility,
             };
-            let next_transform = transforms.bake_transform(&next, &stacks, transform, kind);
-            owner.remove(&mut ec);
-            stack.remove(&mut ec);
-            ec.remove::<(CardIndex, CardVisibility, StartTransition)>();
+            let next_transform = transforms.bake_transform(&next, &stacks, kind, focused.is_some());
             ec.insert(CardTransition {
                 previous: CardStateSnapshot {
                     owner,
@@ -188,9 +299,9 @@ pub fn mirror_resource_change(
                 length: 0.0,
             });
         }
-        for (mut transition, transform, kind) in transitioning.iter_mut() {
+        for (mut transition, transform, kind, focused) in transitioning.iter_mut() {
             transition.next_transform =
-                transforms.bake_transform(&transition.next, &stacks, transform, kind);
+                transforms.bake_transform(&transition.next, &stacks, kind, focused.is_some());
         }
     }
 }
@@ -232,12 +343,22 @@ impl Plugin for TransitionsPlugin {
         app.register_type::<CardStateSnapshot>()
             .register_type::<CardTransition>()
             .register_type::<StartTransition>()
+            .register_type::<StartFocus>()
+            .register_type::<ResetFocus>()
             .register_type::<PositionGenerator>()
             .register_type::<TransitionTransforms>()
             .init_resource::<TransitionTransforms>()
             .register_type::<PlayBackSpeed>()
             .insert_resource(PlayBackSpeed(0.5))
-            .add_systems(PostUpdate, (start_transition, mirror_resource_change))
+            .add_systems(
+                PostUpdate,
+                (
+                    start_transition,
+                    start_focus,
+                    reset_focus,
+                    mirror_resource_change,
+                ),
+            )
             .add_systems(PreUpdate, update_transition);
     }
 }

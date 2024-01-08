@@ -51,6 +51,9 @@ pub fn draw_routine<const PLAYER: u8>(
                     }
                     *discard_to_deck = true;
                     return;
+                } else {
+                    //both the discard pile and deck are empty, impossible to draw
+                    finished = true;
                 }
             } else {
                 //search empty slot (mask trick to allow random iteration)

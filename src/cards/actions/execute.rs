@@ -1,4 +1,5 @@
 use super::Action;
+use crate::game::routines::RoutineManager;
 use crate::players::{Player, PlayerAttack, PlayerEconomy, PlayerLife};
 use crate::prelude::*;
 
@@ -60,10 +61,12 @@ impl Action {
                         }
                     }
                 }
-                Action::Draw => {
-                    // if let Some(mut actions) = world.get_resource_mut::<GameActions>() {
-                    //     actions.push(false, GameAction::Draw { owner });
-                    // }
+                Action::Draw(qty) => {
+                    if let Some(mut routines) = world.get_resource_mut::<RoutineManager>() {
+                        for _ in 0..*qty {
+                            routines.draw(owner);
+                        }
+                    }
                 }
                 Action::Discard => {
                     // if let Some(mut actions) = world.get_resource_mut::<Events<GameActions>>() {

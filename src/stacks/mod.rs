@@ -32,7 +32,7 @@ impl Stacks {
             Stacks::Scrapyard => false,
             Stacks::PlayerDeck => false,
             Stacks::Hand => true,
-            Stacks::UsedCards => true,
+            Stacks::UsedCards => false,
             Stacks::Bases => false,
             Stacks::DiscardPile => false,
             Stacks::Focused => false,
@@ -80,10 +80,6 @@ pub struct DiscardPile;
 
 #[derive(Component, Reflect, Default, Debug)]
 #[reflect(Component)]
-pub struct Focused;
-
-#[derive(Component, Reflect, Default, Debug)]
-#[reflect(Component)]
 pub struct Selection;
 
 #[derive(Component, Reflect, Default, Debug)]
@@ -122,7 +118,7 @@ impl FilterEnumInserter for Stacks {
                 entity.insert(DiscardPile);
             }
             Self::Focused => {
-                entity.insert(Focused);
+                // entity.insert(Focused);
             }
             Self::Selection => {
                 entity.insert(Selection);
@@ -164,7 +160,7 @@ impl FilterEnumInserter for Stacks {
                 entity.remove::<DiscardPile>();
             }
             Self::Focused => {
-                entity.remove::<Focused>();
+                // entity.remove::<Focused>();
             }
             Self::Selection => {
                 entity.remove::<Selection>();
@@ -206,7 +202,7 @@ impl FilterEnumInserter for Stacks {
                 entity.insert(DiscardPile);
             }
             Self::Focused => {
-                entity.insert(Focused);
+                // entity.insert(Focused);
             }
             Self::Selection => {
                 entity.insert(Selection);
@@ -248,7 +244,7 @@ impl FilterEnumInserter for Stacks {
                 entity.remove::<DiscardPile>();
             }
             Self::Focused => {
-                entity.remove::<Focused>();
+                // entity.remove::<Focused>();
             }
             Self::Selection => {
                 entity.remove::<Selection>();
@@ -274,7 +270,7 @@ impl Plugin for StacksPlugin {
             .register_type::<UsedCards>()
             .register_type::<Bases>()
             .register_type::<DiscardPile>()
-            .register_type::<Focused>()
+            // .register_type::<Focused>()
             .register_type::<Selection>()
             .register_type::<Log>();
     }
