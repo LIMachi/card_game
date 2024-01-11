@@ -9,23 +9,23 @@ use bevy::utils::HashMap;
 #[reflect(Resource)]
 pub struct PlayBackSpeed(pub f32);
 
-#[derive(Reflect, Default, Debug, Copy, Clone)]
+#[derive(Reflect, Default, Debug, Copy, Clone, Eq, PartialEq)]
 pub struct CardStateSnapshot {
-    owner: CardOwners,
-    stack: Stacks,
-    index: CardIndex,
-    visibility: CardVisibility,
+    pub owner: CardOwners,
+    pub stack: Stacks,
+    pub index: CardIndex,
+    pub visibility: CardVisibility,
 }
 
 #[derive(Component, Reflect, Default, Debug, Copy, Clone)]
 #[reflect(Component)]
 pub struct CardTransition {
-    previous: CardStateSnapshot,
-    previous_transform: Transform,
-    next: CardStateSnapshot,
-    next_transform: Transform,
-    timer: f32,
-    length: f32,
+    pub previous: CardStateSnapshot,
+    pub previous_transform: Transform,
+    pub next: CardStateSnapshot,
+    pub next_transform: Transform,
+    pub timer: f32,
+    pub length: f32,
 }
 
 #[derive(Component, Reflect, Default, Debug, Copy, Clone)]
@@ -58,6 +58,7 @@ pub struct ResetFocus {
 pub struct PositionGenerator {
     pub root: Vec3,
     pub index_offset: Vec3,
+    pub scale: Vec3,
     pub inverted_indexes: bool,
     pub keep_base_vertical: bool,
 }
@@ -66,6 +67,13 @@ pub struct PositionGenerator {
 #[reflect(Resource)]
 pub struct TransitionTransforms {
     pub positions: HashMap<(CardOwners, Stacks), PositionGenerator>,
+}
+
+#[derive(SystemSet, Copy, Clone, Debug, PartialEq, Eq, Hash)]
+pub enum TransitionSystemSets {
+    Update,
+    Start,
+    Debug,
 }
 
 impl TransitionTransforms {
@@ -99,7 +107,8 @@ impl TransitionTransforms {
                 }
                 index = len as f32 - index - 1.;
             }
-            out.translation = gen.root + gen.index_offset * index;
+            out.scale = gen.scale;
+            out.translation = gen.root + gen.index_offset * gen.scale * index;
             if snapshot.visibility == CardVisibility::Visible
                 && *card_kind != CardKinds::Ship
                 && !gen.keep_base_vertical
@@ -141,12 +150,7 @@ pub fn start_focus(
         ec.insert((
             Focused,
             CardTransition {
-                previous: CardStateSnapshot {
-                    owner,
-                    stack,
-                    index,
-                    visibility,
-                },
+                previous: next,
                 previous_transform: *transform,
                 next,
                 next_transform,
@@ -189,12 +193,7 @@ pub fn reset_focus(
         };
         let next_transform = transforms.bake_transform(&next, &stacks, kind, false);
         ec.insert((CardTransition {
-            previous: CardStateSnapshot {
-                owner,
-                stack,
-                index,
-                visibility,
-            },
+            previous: next,
             previous_transform: *transform,
             next,
             next_transform,
@@ -326,6 +325,10 @@ pub fn update_transition(
             .previous_transform
             .translation
             .lerp(transition.next_transform.translation, factor);
+        transform.scale = transition
+            .previous_transform
+            .scale
+            .lerp(transition.next_transform.scale, factor);
         if transition.timer == transition.length {
             let mut card = commands.entity(card);
             card.remove::<CardTransition>();
@@ -353,12 +356,14 @@ impl Plugin for TransitionsPlugin {
             .add_systems(
                 PostUpdate,
                 (
-                    start_transition,
-                    start_focus,
-                    reset_focus,
-                    mirror_resource_change,
+                    (start_transition, start_focus, reset_focus)
+                        .in_set(TransitionSystemSets::Start),
+                    mirror_resource_change.in_set(TransitionSystemSets::Debug),
                 ),
             )
-            .add_systems(PreUpdate, update_transition);
+            .add_systems(
+                PreUpdate,
+                update_transition.in_set(TransitionSystemSets::Update),
+            );
     }
 }

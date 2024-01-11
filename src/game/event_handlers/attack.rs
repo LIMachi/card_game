@@ -1,3 +1,4 @@
+use crate::cards::components::kinds::BaseLife;
 use crate::game::events::{GameEvent, GameEvents};
 use crate::game::routines::RoutineManager;
 use crate::players::{Player, PlayerAttack, PlayerLife};
@@ -8,10 +9,27 @@ pub fn attack<const BY: u8, const PLAYER: u8>(
     mut events: ResMut<GameEvent>,
     turn: Res<State<TurnStates>>,
     indexes: Query<(Entity, &CardIndex, &CardKinds), (With<Player<PLAYER>>, With<Bases>)>,
-    mut bases: Query<&mut Base, With<Player<PLAYER>>>,
-    mut outposts: Query<&mut Outpost, With<Player<PLAYER>>>,
+    mut bases: Query<
+        &mut BaseLife,
+        (
+            With<Player<PLAYER>>,
+            With<Bases>,
+            With<Base>,
+            Without<Outpost>,
+        ),
+    >,
+    mut outposts: Query<
+        &mut BaseLife,
+        (
+            With<Player<PLAYER>>,
+            With<Bases>,
+            With<Outpost>,
+            Without<Base>,
+        ),
+    >,
     mut life: Query<&mut PlayerLife, With<Player<PLAYER>>>,
     mut attack: Query<&mut PlayerAttack, With<Player<BY>>>,
+    mut routines: ResMut<RoutineManager>,
 ) {
     if let Some(&GameEvents::Attack {
         as_much_as_possible,
@@ -56,6 +74,9 @@ pub fn attack<const BY: u8, const PLAYER: u8>(
                                 };
                                 life.0 -= damage;
                                 attack.0 -= damage;
+                                if life.0 == 0 {
+                                    routines.discard(PLAYER, card);
+                                }
                                 ok = true;
                             } else {
                                 if outposts.is_empty() {
@@ -67,6 +88,9 @@ pub fn attack<const BY: u8, const PLAYER: u8>(
                                     };
                                     life.0 -= damage;
                                     attack.0 -= damage;
+                                    if life.0 == 0 {
+                                        routines.discard(PLAYER, card);
+                                    }
                                     ok = true;
                                 } else {
                                     //cannot, should make a visual feedback on outposts

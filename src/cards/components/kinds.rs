@@ -1,3 +1,4 @@
+use crate::cards::actions::KindMask;
 use crate::utils::filter_enum::FilterEnumInserter;
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
@@ -13,6 +14,29 @@ pub enum CardKinds {
     Base(i32),
     Outpost(i32),
 }
+
+impl CardKinds {
+    pub fn in_mask(&self, mask: KindMask) -> bool {
+        match self {
+            CardKinds::Ship => match mask {
+                KindMask::Any | KindMask::NonBase | KindMask::NonOutpost | KindMask::Ships => true,
+                KindMask::NonShip | KindMask::Bases | KindMask::Outposts | KindMask::None => false,
+            },
+            CardKinds::Base(_) => match mask {
+                KindMask::Any | KindMask::NonShip | KindMask::NonOutpost | KindMask::Bases => true,
+                KindMask::NonBase | KindMask::Ships | KindMask::Outposts | KindMask::None => false,
+            },
+            CardKinds::Outpost(_) => match mask {
+                KindMask::Any | KindMask::NonBase | KindMask::NonShip | KindMask::Outposts => true,
+                KindMask::NonOutpost | KindMask::Bases | KindMask::Ships | KindMask::None => false,
+            },
+        }
+    }
+}
+
+#[derive(Component, Debug, Default, Reflect, Copy, Clone, Eq, PartialEq)]
+#[reflect(Component)]
+pub struct BaseLife(pub i32);
 
 #[derive(Component, Reflect, Default, Debug)]
 #[reflect(Component)]
@@ -34,10 +58,10 @@ impl FilterEnumInserter for CardKinds {
                 entity.insert(Ship);
             }
             Self::Base(life) => {
-                entity.insert(Base(*life));
+                entity.insert((Base(*life), BaseLife(*life)));
             }
             Self::Outpost(life) => {
-                entity.insert(Outpost(*life));
+                entity.insert((Outpost(*life), BaseLife(*life)));
             }
         }
     }
@@ -49,10 +73,10 @@ impl FilterEnumInserter for CardKinds {
                 entity.remove::<Ship>();
             }
             Self::Base(_) => {
-                entity.remove::<Base>();
+                entity.remove::<(Base, BaseLife)>();
             }
             Self::Outpost(_) => {
-                entity.remove::<Outpost>();
+                entity.remove::<(Outpost, BaseLife)>();
             }
         }
     }
@@ -64,10 +88,10 @@ impl FilterEnumInserter for CardKinds {
                 entity.insert(Ship);
             }
             Self::Base(life) => {
-                entity.insert(Base(*life));
+                entity.insert((Base(*life), BaseLife(*life)));
             }
             Self::Outpost(life) => {
-                entity.insert(Outpost(*life));
+                entity.insert((Outpost(*life), BaseLife(*life)));
             }
         }
     }
@@ -79,10 +103,10 @@ impl FilterEnumInserter for CardKinds {
                 entity.remove::<Ship>();
             }
             Self::Base(_) => {
-                entity.remove::<Base>();
+                entity.remove::<(Base, BaseLife)>();
             }
             Self::Outpost(_) => {
-                entity.remove::<Outpost>();
+                entity.remove::<(Outpost, BaseLife)>();
             }
         }
     }
@@ -94,6 +118,7 @@ impl Plugin for KindsPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<CardKinds>()
             .register_type::<Ship>()
+            .register_type::<BaseLife>()
             .register_type::<Base>()
             .register_type::<Outpost>();
     }

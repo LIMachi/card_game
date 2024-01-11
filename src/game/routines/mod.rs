@@ -1,13 +1,26 @@
 mod activate_card;
-mod choice;
+pub mod card_action;
 mod draw;
-mod move_to_stack;
+pub mod move_to_stack;
 mod reload_market;
+mod selection;
 mod shuffle;
 
+use crate::cards::actions::{Action, ActionCondition, KindMask};
 use crate::game::events::CardActions;
+use crate::game::routines::card_action::Selection;
 use crate::prelude::*;
+use bevy::utils::HashSet;
 use std::collections::VecDeque;
+
+#[derive(Reflect, Debug, Default, Clone)]
+pub struct SelectionFilter {
+    pub stacks: Vec<Stacks>,
+    pub owners: Vec<CardOwners>,
+    pub kinds: KindMask,
+    pub min_cost: u8,
+    pub max_cost: u8,
+}
 
 #[derive(Reflect, Debug, Default, Clone)]
 pub enum Routines {
@@ -38,7 +51,22 @@ pub enum Routines {
     },
     ActivateCard {
         card: Entity,
+        owner: u8,
+        index: u8,
         set: ActionSet,
+        running: bool,
+    },
+    CardAction {
+        card: Entity,
+        owner: u8,
+        ability_index: u8,
+        action_index: u8,
+        action: Action,
+    },
+    Selection {
+        filters: Vec<SelectionFilter>,
+        min: usize,
+        max: usize,
         running: bool,
     },
 }
@@ -48,6 +76,39 @@ pub enum Routines {
 pub struct RoutineManager(pub VecDeque<Routines>);
 
 impl RoutineManager {
+    pub fn selection(
+        &mut self,
+        min: usize,
+        max: usize,
+        stack: Stacks,
+        owner: CardOwners,
+        kinds: KindMask,
+        min_cost: u8,
+        max_cost: u8,
+    ) {
+        self.0.push_front(Routines::Selection {
+            filters: vec![SelectionFilter {
+                stacks: vec![stack],
+                owners: vec![owner],
+                kinds,
+                min_cost,
+                max_cost,
+            }],
+            min,
+            max,
+            running: false,
+        });
+    }
+
+    pub fn extended_selection(&mut self, min: usize, max: usize, filters: Vec<SelectionFilter>) {
+        self.0.push_front(Routines::Selection {
+            filters,
+            min,
+            max,
+            running: false,
+        });
+    }
+
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
@@ -133,11 +194,30 @@ impl RoutineManager {
         });
     }
 
-    pub fn activate_card(&mut self, card: Entity, set: ActionSet) {
+    pub fn activate_card(&mut self, owner: u8, card: Entity, index: u8, set: ActionSet) {
         self.0.push_back(Routines::ActivateCard {
             card,
+            owner,
+            index,
             set,
             running: false,
+        });
+    }
+
+    pub fn action(
+        &mut self,
+        owner: u8,
+        card: Entity,
+        ability_index: u8,
+        action_index: u8,
+        action: Action,
+    ) {
+        self.0.push_back(Routines::CardAction {
+            card,
+            owner,
+            ability_index,
+            action_index,
+            action,
         });
     }
 }
@@ -146,7 +226,9 @@ pub struct RoutinesPlugin;
 
 impl Plugin for RoutinesPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<Routines>()
+        app.register_type::<Selection>()
+            .init_resource::<Selection>()
+            .register_type::<Routines>()
             .register_type::<RoutineManager>()
             .init_resource::<RoutineManager>()
             .add_systems(
@@ -158,6 +240,8 @@ impl Plugin for RoutinesPlugin {
                     reload_market::reload_market,
                     move_to_stack::move_to_stack,
                     activate_card::activate_card,
+                    card_action::card_action,
+                    selection::selection,
                 ),
             );
     }

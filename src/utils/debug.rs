@@ -1,5 +1,5 @@
 use crate::players::Player;
-use crate::prelude::{CardIndex, CardOwners, CardVisibility, MarketOnwed, Stacks, StartTransition};
+use crate::prelude::{CardIndex, CardOwners, CardVisibility, MarketOwned, Stacks, StartTransition};
 use crate::stacks::Hand;
 use bevy::diagnostic::DiagnosticsStore;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
@@ -14,7 +14,7 @@ pub fn toggle_debug(
     mut root: Query<&mut Visibility, With<FpsRoot>>,
     enemy_hand: Query<
         (Entity, &CardOwners, &CardIndex),
-        (With<Hand>, Without<MarketOnwed>, Without<Player<0>>),
+        (With<Hand>, Without<MarketOwned>, Without<Player<0>>),
     >,
 ) {
     if keys.just_pressed(KeyCode::Apps) {

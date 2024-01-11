@@ -8,7 +8,7 @@ pub mod prelude {
     pub use super::{
         factions::{Blob, CardFactions, MachineCult, Neutral, StarEmpire, TradeFederation},
         kinds::{Base, CardKinds, Outpost, Ship},
-        owners::{CardOwners, MarketOnwed},
+        owners::{CardOwners, MarketOwned},
         CardCost, CardIndex, CardVisibility,
     };
 }

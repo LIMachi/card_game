@@ -2,6 +2,8 @@ use crate::game::events::{GameEvent, GameEvents, GameEventsPlugin};
 use crate::game::GamePlugin;
 use crate::prelude::*;
 use crate::utils::ray_caster::RayCasterPlugin;
+use bevy::ecs::system::RunSystemOnce;
+use bevy_mod_billboard::prelude::BillboardPlugin;
 use bevy_rapier3d::prelude::{NoUserData, RapierPhysicsPlugin};
 
 mod cards;
@@ -51,6 +53,7 @@ fn main() {
     App::new()
         .add_plugins((
             DefaultPlugins,
+            BillboardPlugin,
             RapierPhysicsPlugin::<NoUserData>::default(),
             RayCasterPlugin,
             cards::CardsPlugin,

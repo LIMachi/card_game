@@ -4,7 +4,7 @@ use crate::players::{Player, PlayerAttack, PlayerEconomy, PlayerLife};
 use crate::prelude::*;
 
 impl Action {
-    pub fn execute(&self, world: &mut World, card: Entity) {
+    pub fn execute(&self, world: &mut World, index: u8, card: Entity) {
         if let Some(&CardOwners::Player(owner)) = world.get::<CardOwners>(card) {
             match self {
                 Action::Eco(qty) => {
@@ -77,6 +77,7 @@ impl Action {
                 Action::ScrapDiscard => {}
                 Action::ScrapHandOrDiscard => {}
                 Action::ScrapMarket => {}
+                Action::ScrapSelf => {}
                 Action::DestroyBase => {}
                 Action::EnemyDiscard => {
                     // if let Some(mut actions) = world.get_resource_mut::<Events<GameActions>>() {
@@ -89,7 +90,7 @@ impl Action {
                     valid_kinds,
                 } => {}
                 Action::NextBuyOnDeck(kinds) => {}
-                Action::Unique => {}
+                Action::Unique(_) => {}
             }
         }
     }

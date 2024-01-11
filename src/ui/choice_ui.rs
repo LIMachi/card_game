@@ -1,3 +1,4 @@
+use crate::game::GameStates;
 use crate::prelude::*;
 use bevy::ecs::system::EntityCommands;
 
@@ -28,7 +29,11 @@ impl Plugin for ChoiceUIPlugin {
             .register_type::<ChoiceButton>()
             .register_type::<ValidateButton>()
             .register_type::<ChoiceButtonNone>()
-            .add_systems(Update, (handle_choice_clicks, handle_choice_hover));
+            .add_systems(
+                Update,
+                (handle_choice_clicks, handle_choice_hover)
+                    .run_if(in_state(GameStates::ChoiceInput)),
+            );
     }
 }
 
@@ -73,6 +78,7 @@ pub fn handle_choice_clicks(
         &mut BackgroundColor,
         &mut BorderColor,
     )>,
+    mut state: ResMut<NextState<GameStates>>,
 ) {
     if mouse_buttons.just_released(MouseButton::Left) {
         if let Ok(mut root) = root.get_single_mut() {
@@ -85,6 +91,7 @@ pub fn handle_choice_clicks(
                 false
             };
             if root.finished {
+                state.set(GameStates::MainLoop);
                 return;
             }
             let mut hit = None;
@@ -128,6 +135,7 @@ pub fn handle_choice_clicks(
                             *border = Default::default();
                         }
                     }
+                    state.set(GameStates::MainLoop);
                     root.finished = true;
                 }
             }
@@ -140,14 +148,15 @@ pub fn spawn_choices(commands: &mut Commands, set: ActionSet) {
         commands.spawn((
             ChoiceRoot { finished: false },
             NodeBundle {
-                background_color: BackgroundColor(Color::BLACK.with_a(0.5)),
+                background_color: BackgroundColor(Color::BLACK.with_a(0.8)),
                 style: Style {
-                    height: Val::Percent(25.),
+                    // height: Val::Auto,
                     justify_self: JustifySelf::Center,
                     align_self: AlignSelf::Center,
                     justify_content: JustifyContent::Center,
                     flex_direction: FlexDirection::Row,
                     align_items: AlignItems::Center,
+                    top: Val::Percent(14.),
                     padding: UiRect::all(Val::Px(5.)),
                     margin: UiRect::all(Val::Px(5.)),
                     border: UiRect::all(Val::Px(5.)),
@@ -159,7 +168,7 @@ pub fn spawn_choices(commands: &mut Commands, set: ActionSet) {
     }
     let insert_button = |ec: &mut EntityCommands, content: String| {
         ec.insert(ButtonBundle {
-            background_color: BackgroundColor(Color::BLACK.with_a(0.8)),
+            background_color: BackgroundColor(Color::BLACK.with_a(0.9)),
             style: Style {
                 align_items: AlignItems::Center,
                 width: Val::Percent(20.),
@@ -193,7 +202,6 @@ pub fn spawn_choices(commands: &mut Commands, set: ActionSet) {
         root.spawn(NodeBundle {
             style: Style {
                 align_items: AlignItems::Center,
-                top: Val::Percent(15.),
                 justify_self: JustifySelf::Center,
                 justify_content: JustifyContent::Center,
                 padding: UiRect::all(Val::Px(5.)),
@@ -219,8 +227,6 @@ pub fn spawn_choices(commands: &mut Commands, set: ActionSet) {
         });
     };
     match set {
-        ActionSet::None => {}
-        ActionSet::One(_) => {}
         ActionSet::Optional(option) => {
             let mut ec = spawn_ui(commands);
             ec.with_children(|root| {
@@ -247,23 +253,20 @@ pub fn spawn_choices(commands: &mut Commands, set: ActionSet) {
                 insert_button(&mut button, "nothing".to_string());
             });
         }
-        ActionSet::All(_) => {}
-        ActionSet::Any(options) => {
+        ActionSet::AnyOf2(first, second) => {
             let mut ec = spawn_ui(commands);
             ec.with_children(|root| {
                 let mut button = root.spawn(ChoiceButton {
                     selected: false,
                     index: 0,
                 });
-                insert_button(&mut button, format!("{}", options[0]));
-                for i in 1..options.len() {
-                    spawn_separator(root, "and/or");
-                    let mut button = root.spawn(ChoiceButton {
-                        selected: false,
-                        index: i as u8,
-                    });
-                    insert_button(&mut button, format!("{}", options[i]));
-                }
+                insert_button(&mut button, format!("{}", first));
+                spawn_separator(root, "and/or");
+                let mut button = root.spawn(ChoiceButton {
+                    selected: false,
+                    index: 1,
+                });
+                insert_button(&mut button, format!("{}", second));
                 spawn_separator(root, "OR");
                 let mut button = root.spawn(ChoiceButtonNone { selected: false });
                 insert_button(&mut button, "nothing".to_string());
@@ -271,7 +274,7 @@ pub fn spawn_choices(commands: &mut Commands, set: ActionSet) {
                 insert_button(&mut button, "Validate".to_string());
             });
         }
-        ActionSet::OneOf(first, second) => {
+        ActionSet::OneOf2(first, second) => {
             let mut ec = spawn_ui(commands);
             ec.with_children(|root| {
                 let mut button = root.spawn(ChoiceButton {
@@ -287,5 +290,6 @@ pub fn spawn_choices(commands: &mut Commands, set: ActionSet) {
                 insert_button(&mut button, format!("{second}"));
             });
         }
+        _ => {}
     }
 }

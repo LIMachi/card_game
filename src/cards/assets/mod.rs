@@ -1,10 +1,10 @@
 pub mod prepare_models;
 pub mod serializer;
 
-use crate::cards::actions::ActionSet;
+use crate::cards::actions::{ActionCondition, ActionSet};
 use crate::cards::assets::prepare_models::prepare_models;
 use crate::cards::assets::serializer::{CardLoadder, DeckLoadder};
-use crate::cards::components::factions::CardFactions;
+use crate::cards::components::factions::{CardFaction, CardFactions};
 use crate::cards::components::kinds::CardKinds;
 use crate::states::app::AppStates;
 use bevy::asset::LoadedFolder;
@@ -17,11 +17,12 @@ use serde::Deserialize;
 #[reflect(Debug)]
 pub struct Card {
     pub kind: CardKinds,
-    pub factions: Vec<CardFactions>,
+    pub factions: Vec<CardFaction>,
     pub cost: i32,
-    pub play: ActionSet,
-    pub scrap: ActionSet,
-    pub combo: HashMap<CardFactions, ActionSet>,
+    // pub play: ActionSet,
+    // pub scrap: ActionSet,
+    // pub combo: HashMap<CardFactions, ActionSet>,
+    pub actions: Vec<ActionCondition>,
 }
 
 #[derive(Asset, Debug, Default, Reflect, Clone)]
@@ -40,7 +41,9 @@ pub struct LoadedSet {
 
 fn load_decks(mut set: ResMut<LoadedSet>, asset_server: Res<AssetServer>) {
     //TODO: add selection of set/game mode
-    let set_name = "debug_bases";
+
+    // let set_name = "debug_bases";
+    let set_name = "default";
     set.market_deck = asset_server.load(format!("sets/{set_name}/market.deck.ron"));
     set.player_deck = asset_server.load(format!("sets/{set_name}/player.deck.ron"));
     set.joker_deck = asset_server.load(format!("sets/{set_name}/explorer.deck.ron"));

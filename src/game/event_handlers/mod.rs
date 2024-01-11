@@ -27,7 +27,6 @@ pub fn event_handler_dispatcher(world: &mut World) {
             .get_resource::<GameEvent>()
             .and_then(|ge| ge.get_unprocessed())
         {
-            // let &dispatcher = world.get_resource::<GameEventDispatcher>().unwrap();
             let &state = world.get_resource::<State<TurnStates>>().unwrap().get();
             match event {
                 GameEvents::Setup { .. } => {
@@ -88,6 +87,7 @@ pub fn event_handler_dispatcher(world: &mut World) {
                 }
                 GameEvents::Debug => {}
             }
+            //an event happened, recheck the conditions of the cards in play
         }
     }
 }

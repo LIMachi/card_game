@@ -1,13 +1,11 @@
 use crate::utils::filter_enum::FilterEnumInserter;
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
+use bevy::utils::HashSet;
 use serde::{Deserialize, Serialize};
 
-#[derive(
-    Component, Serialize, Deserialize, Debug, Default, Reflect, Copy, Clone, Eq, PartialEq, Hash,
-)]
-#[reflect(Component)]
-pub enum CardFactions {
+#[derive(Serialize, Deserialize, Debug, Default, Reflect, Copy, Clone, Eq, PartialEq, Hash)]
+pub enum CardFaction {
     Blob,
     MachineCult,
     #[default]
@@ -15,6 +13,10 @@ pub enum CardFactions {
     TradeFederation,
     StarEmpire,
 }
+
+#[derive(Component, Debug, Default, Reflect, Clone, Eq, PartialEq)]
+#[reflect(Component)]
+pub struct CardFactions(pub HashSet<CardFaction>);
 
 #[derive(Component, Reflect, Default, Debug)]
 #[reflect(Component)]
@@ -36,9 +38,9 @@ pub struct TradeFederation;
 #[reflect(Component)]
 pub struct StarEmpire;
 
-impl FilterEnumInserter for CardFactions {
+impl FilterEnumInserter for CardFaction {
     fn insert(&self, entity: &mut EntityCommands) {
-        entity.insert(*self);
+        // entity.insert(*self);
         match self {
             Self::Blob => {
                 entity.insert(Blob);
@@ -59,7 +61,7 @@ impl FilterEnumInserter for CardFactions {
     }
 
     fn remove(&self, entity: &mut EntityCommands) {
-        entity.remove::<Self>();
+        // entity.remove::<Self>();
         match self {
             Self::Blob => {
                 entity.remove::<Blob>();
@@ -80,7 +82,7 @@ impl FilterEnumInserter for CardFactions {
     }
 
     fn insert_world(&self, entity: &mut EntityWorldMut) {
-        entity.insert(*self);
+        // entity.insert(*self);
         match self {
             Self::Blob => {
                 entity.insert(Blob);
@@ -101,7 +103,7 @@ impl FilterEnumInserter for CardFactions {
     }
 
     fn remove_world(&self, entity: &mut EntityWorldMut) {
-        entity.remove::<Self>();
+        // entity.remove::<Self>();
         match self {
             Self::Blob => {
                 entity.remove::<Blob>();
@@ -126,7 +128,8 @@ pub struct FactionsPlugin;
 
 impl Plugin for FactionsPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<CardFactions>()
+        app.register_type::<CardFaction>()
+            .register_type::<CardFactions>()
             .register_type::<Blob>()
             .register_type::<MachineCult>()
             .register_type::<Neutral>()

@@ -1,4 +1,5 @@
 use crate::game::event_handlers::event_handler_dispatcher;
+use crate::game::GameStates;
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 
@@ -110,6 +111,9 @@ impl Plugin for GameEventsPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<GameEvent>()
             .init_resource::<GameEvent>()
-            .add_systems(Update, event_handler_dispatcher);
+            .add_systems(
+                Update,
+                event_handler_dispatcher.run_if(in_state(GameStates::MainLoop)),
+            );
     }
 }

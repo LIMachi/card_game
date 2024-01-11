@@ -1,11 +1,31 @@
+use crate::cards::actions::KindMask;
 use crate::game::routines::{RoutineManager, Routines};
 use crate::prelude::*;
 use crate::prelude::{CardIndex, Commands, Entity, Query};
 
+#[derive(Resource, Reflect, Debug)]
+#[reflect(Resource)]
+pub struct NextBuyOnDeckFlag(pub KindMask); //FIXME: player counter reset on turn end?
+
+impl Default for NextBuyOnDeckFlag {
+    fn default() -> Self {
+        Self(KindMask::None)
+    }
+}
+
 pub fn move_to_stack(
     mut commands: Commands,
     mut manager: ResMut<RoutineManager>,
-    all_cards: Query<(&CardOwners, &Stacks, &CardIndex, &CardVisibility, Entity)>,
+    all_cards: Query<(
+        &CardOwners,
+        &Stacks,
+        &CardIndex,
+        &CardVisibility,
+        Entity,
+        &Name,
+        &CardKinds,
+    )>,
+    mut next_buy_on_deck_flag: ResMut<NextBuyOnDeckFlag>,
 ) {
     let mut finished = false;
     if let Some(Routines::PushCardToStack {
@@ -25,20 +45,38 @@ pub fn move_to_stack(
         }) {
             finished = true;
         } else if !*running {
-            if target_index.is_none() {
-                *target_index = Some(
-                    all_cards
-                        .iter()
-                        .fold(0u64, |m, (_, _, v, ..)| m | 1u64 << v.0)
-                        .trailing_ones() as usize,
-                );
-            }
-            let target_index = CardIndex(target_index.unwrap());
-            if let Ok((&current_owner, &current_stack, &current_index, &current_visibility, _)) =
-                all_cards.get(*card)
+            if let Ok((
+                &current_owner,
+                &current_stack,
+                &current_index,
+                &current_visibility,
+                _,
+                name,
+                &kind,
+            )) = all_cards.get(*card)
             {
+                if *target_stack == Stacks::Scrapyard && name.as_str() == "Explorer" {
+                    *target_stack = Stacks::JokerDeck;
+                }
+                if *target_stack == Stacks::DiscardPile
+                    && current_stack == Stacks::MarketRow
+                    && kind.in_mask(next_buy_on_deck_flag.0)
+                {
+                    next_buy_on_deck_flag.0 = KindMask::None;
+                    *target_stack = Stacks::PlayerDeck;
+                }
+                if target_index.is_none() {
+                    *target_index = Some(
+                        all_cards
+                            .iter()
+                            .fold(0u64, |m, (_, _, v, ..)| m | 1u64 << v.0)
+                            .trailing_ones() as usize,
+                    );
+                }
+                let target_index = CardIndex(target_index.unwrap());
+
                 let same_stack = current_stack == *target_stack && current_owner == *target_owner;
-                for (&owner, &stack, &index, &visibility, card) in all_cards.iter() {
+                for (&owner, &stack, &index, &visibility, card, ..) in all_cards.iter() {
                     if !stack.keep_empty_spaces()
                         && index.0 > current_index.0
                         && owner == current_owner

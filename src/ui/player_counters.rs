@@ -221,7 +221,7 @@ pub fn update_attack_button(
         ),
         Changed<Interaction>,
     >,
-    // mut event: ResMut<GameEvent>,
+    mut event: ResMut<GameEvent>,
     turn: Res<State<TurnStates>>,
     debug: Res<DebugRenderContext>,
     local_player: Res<LocalPlayer>,
@@ -232,11 +232,14 @@ pub fn update_attack_button(
                 // Interaction::Pressed => {
                 //     event.push(GameEvents::Attack {
                 //         as_much_as_possible: true, //FIXME: should replace this ui with actual buttons that react to other buttons
-                //         player: target.player,
+                //         player: 1,
                 //         base_index: None,
                 //     });
                 // }
-                Interaction::Hovered | Interaction::Pressed => {
+                Interaction::Pressed => {
+                    target.hovered = true;
+                }
+                Interaction::Hovered => {
                     target.hovered = true;
                 }
                 Interaction::None => {

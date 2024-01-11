@@ -1,13 +1,28 @@
 pub mod execute;
 mod uniques;
 
+use crate::cards::actions::uniques::Uniques;
 use crate::cards::assets::Card;
+use crate::cards::components::factions::CardFaction;
+use crate::players::PlayerTurnTracker;
 use crate::prelude::*;
-use bevy::utils::{HashMap, HashSet};
 use serde::{Deserialize, Serialize};
-use std::fmt::{Display, Formatter, Write};
+use std::fmt::{Debug, Display, Formatter, Write};
 
-#[derive(Serialize, Deserialize, Debug, Default, Reflect, Clone, Eq, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Default, Reflect, Copy, Clone, Eq, PartialEq)]
+pub enum KindMask {
+    #[default]
+    Any = 0b111,
+    Ships = 0b001,
+    Bases = 0b010,
+    Outposts = 0b100,
+    NonShip = 0b110,
+    NonBase = 0b101,
+    NonOutpost = 0b011,
+    None = 0,
+}
+
+#[derive(Serialize, Deserialize, Debug, Reflect, Copy, Clone, Eq, PartialEq)]
 pub enum Action {
     Eco(u8),            //gain economy
     Atk(u8),            //gain attack
@@ -18,17 +33,23 @@ pub enum Action {
     ScrapDiscard,       //scrap a card from the discard pile
     ScrapHandOrDiscard, //Helper for the recurring optional from machine cult faction
     ScrapMarket,        //scrap a card from the market
-    DestroyBase,        //target and put in discard pile target base
-    EnemyDiscard,       //force targeted player to discard
+    ScrapSelf, //scrap the card that triggered this action (not to confuse with the scrap condition, this can be used as part of Do/Ally action)
+    DestroyBase, //target and put in discard pile target base
+    EnemyDiscard, //force targeted player to discard
     FreeBuy {
         //allow imediate aquisition of a card on the market matching the condition
         min_cost: u8,
         max_cost: u8,
-        valid_kinds: Vec<CardKinds>,
+        valid_kinds: KindMask,
     },
-    NextBuyOnDeck(Vec<CardKinds>),
-    #[default]
-    Unique, //special action that is hard coded for a specific card, like the stealth needle ability of copying another ship
+    NextBuyOnDeck(KindMask),
+    Unique(Uniques), //special action that is hard coded for a specific card, like the stealth needle ability of copying another ship
+}
+
+impl Default for Action {
+    fn default() -> Self {
+        Self::Unique(Uniques::Unimplemented)
+    }
 }
 
 //new format for actions: an action set is associated to a condition
@@ -40,14 +61,73 @@ pub enum Action {
 //- after:
 //actions: [(None, One(Atk(1)))]
 
-#[derive(Serialize, Deserialize, Debug, Default, Reflect, Clone, Eq, PartialEq)]
-pub enum Condition {
+#[derive(Serialize, Deserialize, Debug, Default, Reflect, Copy, Clone, Eq, PartialEq)]
+pub enum ActionCondition {
     #[default]
     None,
-    Scrap,
-    Ally(CardFactions),
-    DoubleAlly(CardFactions),
-    TwoBases,
+    Do(ActionSet),
+    Scrap(ActionSet),
+    Ally(CardFaction, ActionSet),
+    DoubleAlly(CardFaction, CardFaction, ActionSet),
+}
+
+impl ActionCondition {
+    pub fn check(&self, tracker: &PlayerTurnTracker) -> bool {
+        match self {
+            Self::None => false,
+            Self::Do(_) => true,
+            Self::Scrap(_) => true,
+            Self::Ally(faction, _) => tracker
+                .faction_counters
+                .get(faction)
+                .map_or(false, |c| c.ships_in_play + c.bases_in_play > 1),
+            Self::DoubleAlly(first, second, _) => {
+                if first == second {
+                    tracker
+                        .faction_counters
+                        .get(first)
+                        .map_or(false, |c| c.ships_in_play + c.bases_in_play > 2)
+                } else {
+                    tracker
+                        .faction_counters
+                        .get(first)
+                        .map_or(false, |c| c.ships_in_play + c.bases_in_play > 1)
+                        && tracker
+                            .faction_counters
+                            .get(second)
+                            .map_or(false, |c| c.ships_in_play + c.bases_in_play > 1)
+                }
+            }
+        }
+    }
+
+    pub fn get_action_set(&self) -> Option<(&ActionSet, bool)> {
+        match self {
+            ActionCondition::None => None,
+            ActionCondition::Do(set) => Some((set, false)),
+            ActionCondition::Scrap(set) => Some((set, true)),
+            ActionCondition::Ally(_, set) => Some((set, false)),
+            ActionCondition::DoubleAlly(_, _, set) => Some((set, false)),
+        }
+    }
+
+    pub fn execute(&self, world: &mut World, index: u8, card: Entity) {
+        match self {
+            ActionCondition::None => {}
+            ActionCondition::Do(set) => {
+                // set.execute(world, index, card);
+            }
+            ActionCondition::Scrap(set) => {
+                // set.execute(world, index, card);
+            }
+            ActionCondition::Ally(_, set) => {
+                // set.execute(world, index, card);
+            }
+            ActionCondition::DoubleAlly(_, _, set) => {
+                // set.execute(world, index, card);
+            }
+        }
+    }
 }
 
 impl Display for Action {
@@ -87,16 +167,13 @@ impl Display for Action {
                     "put the next {kind} you acquire this turn on top of your deck"
                 ))
             }
-            Action::Unique => {
-                //special formating for this one :)
-                //FIXME
-                f.write_str("TODO: unique")
-            }
+            Action::Unique(unique) => std::fmt::Display::fmt(&unique, f),
+            Action::ScrapSelf => f.write_str("TODO: scrap self"),
         }
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Reflect, Clone, Eq, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Default, Reflect, Copy, Clone, Eq, PartialEq)]
 pub enum ActionSet {
     #[default]
     None,
@@ -105,9 +182,11 @@ pub enum ActionSet {
     One(Action),
     Optional(Action),
     OneAndOptional(Action, Action),
-    All(Vec<Action>),
-    Any(Vec<Action>),
-    OneOf(Action, Action),
+    Two(Action, Action),
+    Three(Action, Action, Action),
+    Four(Action, Action, Action, Action),
+    AnyOf2(Action, Action),
+    OneOf2(Action, Action),
 }
 
 impl Display for ActionSet {
@@ -119,258 +198,88 @@ impl Display for ActionSet {
             ActionSet::OneAndOptional(action, option) => {
                 f.write_fmt(format_args!("{action}, you may {option}."))
             }
-            ActionSet::All(actions) => {
-                for i in 0..actions.len() - 1 {
-                    f.write_fmt(format_args!("{}, ", actions[i]))?;
-                }
-                f.write_fmt(format_args!("{}.", actions[actions.len() - 1]))
+            ActionSet::Two(first, second) => f.write_fmt(format_args!("{first}, {second}.")),
+            ActionSet::Three(first, second, third) => {
+                f.write_fmt(format_args!("{first}, {second}, {third}."))
             }
-            ActionSet::Any(actions) => {
-                f.write_fmt(format_args!("you may {} and/or ", actions[0]))?;
-                for i in 1..actions.len() - 1 {
-                    f.write_fmt(format_args!("{} and/or ", actions[i]))?;
-                }
-                f.write_fmt(format_args!("{}.", actions[actions.len() - 1]))
+            ActionSet::Four(first, second, third, fourth) => {
+                f.write_fmt(format_args!("{first}, {second}, {third}, {fourth}.",))
             }
-            ActionSet::OneOf(first, second) => f.write_fmt(format_args!("{first} or {second}.")),
+            ActionSet::AnyOf2(first, second) => {
+                f.write_fmt(format_args!("you may {first} and/or {second}."))
+            }
+            ActionSet::OneOf2(first, second) => f.write_fmt(format_args!("{first} or {second}.")),
         }
     }
 }
-
-impl ActionSet {
-    //bool: use preceding "you may" msg + "do nothing" option at the end
-    //string: separator between each element
-    pub fn option_separator(&self) -> Option<(bool, &str)> {
-        match self {
-            ActionSet::None => None,
-            ActionSet::One(_) => None,
-            ActionSet::Optional(_) => Some((true, "")),
-            ActionSet::OneAndOptional(_, _) => Some((true, "")),
-            ActionSet::All(_) => None,
-            ActionSet::Any(_) => Some((true, "and/or")),
-            ActionSet::OneOf(_, _) => Some((false, "or")),
-        }
-    }
-}
-
-// #[derive(Component, Reflect, Default, Debug, Clone)]
-// #[reflect(Component)]
-// pub struct OnPlay(pub ActionSet, pub bool);
-//
-// #[derive(Component, Reflect, Default, Debug, Clone)]
-// #[reflect(Component)]
-// pub struct OnScrap(pub ActionSet, pub bool);
-//
-// #[derive(Component, Reflect, Default, Debug, Clone)]
-// #[reflect(Component)]
-// pub struct ComboBlob(pub ActionSet, pub bool);
-//
-// #[derive(Component, Reflect, Default, Debug, Clone)]
-// #[reflect(Component)]
-// pub struct ComboMachineCult(pub ActionSet, pub bool);
-//
-// #[derive(Component, Reflect, Default, Debug, Clone)]
-// #[reflect(Component)]
-// pub struct ComboTradeFederation(pub ActionSet, pub bool);
-//
-// #[derive(Component, Reflect, Default, Debug, Clone)]
-// #[reflect(Component)]
-// pub struct ComboStarEmpire(pub ActionSet, pub bool);
 
 #[derive(Component, Reflect, Default, Debug, Clone)]
 #[reflect(Component)]
 pub struct CardActions {
-    on_play: (ActionSet, bool),
-    on_scrap: (ActionSet, bool),
-    combos: HashMap<CardFactions, (bool, ActionSet, bool)>,
+    actions: Vec<(ActionCondition, bool)>,
 }
 
 impl CardActions {
-    pub fn add_ally(&mut self, ally: CardFactions) {
-        if let Some((allied, ..)) = self.combos.get_mut(&ally) {
-            *allied = true;
-        }
-    }
-
-    pub fn count(&self) -> u8 {
-        let play = if self.on_play.0 != ActionSet::None {
-            1
-        } else {
-            0
-        };
-        let scrap = if self.on_scrap.0 != ActionSet::None {
-            1
-        } else {
-            0
-        };
-        self.combos.len() as u8 + play + scrap
+    pub fn len(&self) -> u8 {
+        self.actions.len() as u8
     }
 
     pub fn from_serialized_card(card: &Card) -> Self {
-        let mut combos = HashMap::with_capacity(card.combo.len());
-        for (faction, set) in card.combo.iter() {
-            combos.insert(*faction, (false, set.clone(), false));
-        }
         Self {
-            on_play: (card.play.clone(), false),
-            on_scrap: (card.scrap.clone(), false),
-            combos,
+            actions: card.actions.iter().map(|c| (c.clone(), false)).collect(),
         }
     }
 
     pub fn reset(&mut self) {
-        self.on_play.1 = false;
-        self.on_scrap.1 = false;
-        for (_, (allied, _, used)) in self.combos.iter_mut() {
+        for (_, used) in self.actions.iter_mut() {
             *used = false;
-            *allied = false;
         }
     }
 
-    pub fn play_action_available(&self) -> bool {
-        self.on_play.0 != ActionSet::None && !self.on_play.1
+    pub fn is_action_real(&self, index: u8) -> bool {
+        self.actions
+            .get(index as usize)
+            .map_or(false, |(c, _)| c != &ActionCondition::None)
     }
 
-    pub fn scrap_action_available(&self) -> bool {
-        self.on_scrap.0 != ActionSet::None && !self.on_scrap.1
-    }
-
-    pub fn combo_action_available(&self, with: CardFactions) -> bool {
-        self.combos.get(&with).map_or(false, |(allied, set, used)| {
-            *allied && *set != ActionSet::None && !*used
-        })
-    }
-
-    pub fn peek_play_action(&self) -> Option<&ActionSet> {
-        if self.play_action_available() {
-            Some(&self.on_play.0)
+    pub fn is_action_available(&self, index: u8, tracker: &PlayerTurnTracker) -> bool {
+        if let Some((condition, used)) = self.actions.get(index as usize) {
+            !*used && condition.check(tracker)
         } else {
-            None
+            false
         }
     }
 
-    pub fn use_play_action(&mut self) -> Option<&ActionSet> {
-        if self.play_action_available() {
-            self.on_play.1 = true;
-            Some(&self.on_play.0)
-        } else {
-            None
-        }
-    }
-
-    pub fn peek_scrap_action(&self) -> Option<&ActionSet> {
-        if self.scrap_action_available() {
-            Some(&self.on_scrap.0)
-        } else {
-            None
-        }
-    }
-
-    pub fn use_scrap_action(&mut self) -> Option<&ActionSet> {
-        if self.scrap_action_available() {
-            self.on_scrap.1 = true;
-            Some(&self.on_scrap.0)
-        } else {
-            None
-        }
-    }
-
-    pub fn peek_combo_action(&self, with: CardFactions) -> Option<&ActionSet> {
-        self.combos.get(&with).and_then(|(allied, set, used)| {
-            if *allied && *set != ActionSet::None && !*used {
-                Some(&*set)
-            } else {
-                None
-            }
-        })
-    }
-
-    pub fn use_combo_action(&mut self, with: CardFactions) -> Option<&ActionSet> {
-        self.combos.get_mut(&with).and_then(|(allied, set, used)| {
-            if *allied && *set != ActionSet::None && !*used {
+    pub fn use_action(
+        &mut self,
+        index: u8,
+        tracker: &PlayerTurnTracker,
+    ) -> Option<(&ActionSet, bool)> {
+        if let Some((condition, used)) = self.actions.get_mut(index as usize) {
+            if !*used && condition.check(tracker) {
                 *used = true;
-                Some(&*set) //&* used to remove mutability
+                condition.get_action_set()
             } else {
                 None
             }
-        })
+        } else {
+            None
+        }
     }
 
-    pub fn peek_by_index(&self, mut index: u8) -> Option<&ActionSet> {
-        if self.on_play.0 != ActionSet::None {
-            if index == 0 {
-                return if !self.on_play.1 {
-                    Some(&self.on_play.0)
-                } else {
-                    None
-                };
-            } else {
-                index -= 1;
+    pub fn execute(
+        &mut self,
+        world: &mut World,
+        index: u8,
+        card: Entity,
+        tracker: &PlayerTurnTracker,
+    ) {
+        if let Some((condition, used)) = self.actions.get_mut(index as usize) {
+            if !*used && condition.check(tracker) {
+                *used = true;
+                condition.execute(world, index, card);
             }
         }
-        if self.on_scrap.0 != ActionSet::None {
-            if index == 0 {
-                return if !self.on_scrap.1 {
-                    Some(&self.on_scrap.0)
-                } else {
-                    None
-                };
-            } else {
-                index -= 1;
-            }
-        }
-        for (_, (allied, actions, used)) in self.combos.iter() {
-            if index == 0 {
-                return if *allied && *actions != ActionSet::None && !*used {
-                    Some(actions)
-                } else {
-                    None
-                };
-            } else {
-                index -= 1;
-            }
-        }
-        None
-    }
-
-    pub fn use_by_index(&mut self, mut index: u8) -> Option<&ActionSet> {
-        if self.on_play.0 != ActionSet::None {
-            if index == 0 {
-                return if !self.on_play.1 {
-                    self.on_play.1 = true;
-                    Some(&self.on_play.0)
-                } else {
-                    None
-                };
-            } else {
-                index -= 1;
-            }
-        }
-        if self.on_scrap.0 != ActionSet::None {
-            if index == 0 {
-                return if !self.on_scrap.1 {
-                    self.on_scrap.1 = true;
-                    Some(&self.on_scrap.0)
-                } else {
-                    None
-                };
-            } else {
-                index -= 1;
-            }
-        }
-        for (_, (allied, actions, used)) in self.combos.iter_mut() {
-            if index == 0 {
-                return if *allied && *actions != ActionSet::None && !*used {
-                    *used = true;
-                    Some(&*actions) //&* used to remove mutability
-                } else {
-                    None
-                };
-            } else {
-                index -= 1;
-            }
-        }
-        None
     }
 }
 
@@ -380,12 +289,7 @@ impl Plugin for GameActionsPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<Action>()
             .register_type::<ActionSet>()
-            // .register_type::<OnPlay>()
-            // .register_type::<OnScrap>()
-            // .register_type::<ComboBlob>()
-            // .register_type::<ComboMachineCult>()
-            // .register_type::<ComboTradeFederation>()
-            // .register_type::<ComboStarEmpire>()
+            .register_type::<ActionCondition>()
             .register_type::<CardActions>();
     }
 }

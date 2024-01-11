@@ -16,14 +16,14 @@ pub enum CardOwners {
 
 #[derive(Component, Reflect, Default, Debug)]
 #[reflect(Component)]
-pub struct MarketOnwed;
+pub struct MarketOwned;
 
 impl FilterEnumInserter for CardOwners {
     fn insert(&self, entity: &mut EntityCommands) {
         entity.insert(*self);
         match self {
             Self::Market => {
-                entity.insert(MarketOnwed);
+                entity.insert(MarketOwned);
             }
             Self::Player(0) => {
                 entity.insert(Player::<0>);
@@ -44,7 +44,7 @@ impl FilterEnumInserter for CardOwners {
         entity.remove::<Self>();
         match self {
             Self::Market => {
-                entity.remove::<MarketOnwed>();
+                entity.remove::<MarketOwned>();
             }
             Self::Player(0) => {
                 entity.remove::<Player<0>>();
@@ -65,7 +65,7 @@ impl FilterEnumInserter for CardOwners {
         entity.insert(*self);
         match self {
             Self::Market => {
-                entity.insert(MarketOnwed);
+                entity.insert(MarketOwned);
             }
             Self::Player(0) => {
                 entity.insert(Player::<0>);
@@ -86,7 +86,7 @@ impl FilterEnumInserter for CardOwners {
         entity.remove::<Self>();
         match self {
             Self::Market => {
-                entity.remove::<MarketOnwed>();
+                entity.remove::<MarketOwned>();
             }
             Self::Player(0) => {
                 entity.remove::<Player<0>>();
@@ -109,6 +109,6 @@ pub struct OwnersPlugin;
 impl Plugin for OwnersPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<CardOwners>()
-            .register_type::<MarketOnwed>();
+            .register_type::<MarketOwned>();
     }
 }

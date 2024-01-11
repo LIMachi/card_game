@@ -3,6 +3,7 @@ use crate::cards::assets::{Card, LoadedModels, LoadedSet};
 use crate::cards::prelude::*;
 use crate::utils::filter_enum::FilterEnumInserter;
 use bevy::prelude::*;
+use bevy::utils::HashSet;
 use bevy_rapier3d::prelude::{Collider, RigidBody};
 
 #[derive(Component)]
@@ -25,34 +26,15 @@ pub fn spawn_card(
                 RigidBody::Fixed,
             ));
             card.kind.insert(&mut ec);
+            let mut factions = HashSet::with_capacity(card.factions.len());
             for faction in &card.factions {
                 faction.insert(&mut ec);
+                factions.insert(*faction);
             }
-            ec.insert(CardActions::from_serialized_card(card));
-            // if card.play != ActionSet::None {
-            //     ec.insert(OnPlay(card.play.clone(), false));
-            // }
-            // if card.scrap != ActionSet::None {
-            //     ec.insert(OnScrap(card.scrap.clone(), false));
-            // }
-            // for (faction, action) in card.combo.iter() {
-            //     match faction {
-            //         CardFactions::Blob => {
-            //             ec.insert(ComboBlob(action.clone(), false));
-            //         }
-            //         CardFactions::MachineCult => {
-            //             ec.insert(ComboMachineCult(action.clone(), false));
-            //         }
-            //         CardFactions::Neutral => {} //shouldn't be possible TODO: add warning/error
-            //         CardFactions::TradeFederation => {
-            //             ec.insert(ComboTradeFederation(action.clone(), false));
-            //         }
-            //         CardFactions::StarEmpire => {
-            //             ec.insert(ComboStarEmpire(action.clone(), false));
-            //         }
-            //     }
-            // }
-            //FIXME: missing combo actions
+            ec.insert((
+                CardFactions(factions),
+                CardActions::from_serialized_card(card),
+            ));
             ec.with_children(|parent| {
                 parent.spawn(PbrBundle {
                     mesh: models.back_mesh.clone(),
