@@ -95,7 +95,7 @@ pub fn card_action(world: &mut World) {
                 let mut routines = world.resource_mut::<RoutineManager>();
                 routines.finish();
                 for _ in 0..qty {
-                    routines.draw(owner);
+                    routines.draw(owner, true);
                 }
             }
             Action::Discard => {

@@ -112,13 +112,13 @@ pub fn setup(
         for i in 0..5 {
             if i >= 3 {
                 if *starting_player == 0 {
-                    routines.draw(1);
+                    routines.draw(1, false);
                 } else {
-                    routines.draw(0);
+                    routines.draw(0, false);
                 }
             } else {
-                routines.draw(0);
-                routines.draw(1);
+                routines.draw(0, false);
+                routines.draw(1, false);
             }
         }
         turn.set(TurnStates::PlayerTurn(*starting_player));

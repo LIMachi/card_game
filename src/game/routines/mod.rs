@@ -125,12 +125,20 @@ impl RoutineManager {
         self.0.pop_front();
     }
 
-    pub fn draw(&mut self, player: u8) {
-        self.0.push_back(Routines::Draw {
-            player,
-            drawn: None,
-            discard_to_deck: false,
-        });
+    pub fn draw(&mut self, player: u8, prioritize: bool) {
+        if prioritize {
+            self.0.push_front(Routines::Draw {
+                player,
+                drawn: None,
+                discard_to_deck: false,
+            });
+        } else {
+            self.0.push_back(Routines::Draw {
+                player,
+                drawn: None,
+                discard_to_deck: false,
+            });
+        }
     }
 
     pub fn reload_market(&mut self, slot: u8) {

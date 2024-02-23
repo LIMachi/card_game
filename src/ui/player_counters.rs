@@ -275,7 +275,7 @@ pub fn update_pass_turn_button(
     >,
     turn: Res<State<TurnStates>>,
     debug: Res<DebugRenderContext>,
-    // mut event: ResMut<GameEvent>,
+    mut event: ResMut<GameEvent>,
     local_player: Res<LocalPlayer>,
 ) {
     if *turn.get() == TurnStates::PlayerTurn(local_player.0) || debug.enabled {

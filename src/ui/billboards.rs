@@ -1,7 +1,7 @@
 use crate::cards::components::kinds::BaseLife;
 use crate::prelude::*;
-use bevy_mod_billboard::BillboardTextBundle;
-
+// use bevy_mod_billboard::BillboardTextBundle;
+/*
 #[derive(Component, Debug, Reflect)]
 pub struct BaseLifeBillboard;
 
@@ -74,3 +74,4 @@ pub fn remove_billboard_when_base_leave_play(
         }
     }
 }
+*/

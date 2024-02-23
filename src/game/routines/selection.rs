@@ -3,6 +3,7 @@ use crate::game::routines::{RoutineManager, Routines, SelectionFilter};
 use crate::game::GameStates;
 use crate::prelude::*;
 use crate::ui::SelectionValidationButton;
+use bevy_rapier3d::rapier::crossbeam::channel::at;
 
 pub fn selection(
     mut commands: Commands,
@@ -27,6 +28,7 @@ pub fn selection(
             selection.cards = Vec::new();
             selection.min = *min;
             selection.max = *max;
+            let mut at_least_one_choice = false;
             //get all valid cards and insert the Selectable component
             for (card, &owner, &stack, &CardCost(cost), &kind) in all_cards.iter() {
                 for SelectionFilter {
@@ -43,9 +45,14 @@ pub fn selection(
                         && cost >= *min_cost as i32
                         && cost <= *max_cost as i32
                     {
+                        at_least_one_choice = true;
                         commands.entity(card).insert(Selectable);
                     }
                 }
+            }
+            if !at_least_one_choice {
+                //if there is no valid choice, auto close the selection on next frame
+                selection.finished = true;
             }
             //make the validation button visible
             *validation_button.get_single_mut().unwrap() = Visibility::Visible;

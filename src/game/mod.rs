@@ -30,7 +30,7 @@ impl Plugin for GamePlugin {
             .register_type::<GameStates>()
             .register_type::<NextState<GameStates>>()
             .register_type::<State<GameStates>>()
-            .add_state::<GameStates>()
+            .init_state::<GameStates>()
             .add_plugins((
                 RoutinesPlugin,
                 ListenersPlugin,

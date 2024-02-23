@@ -25,11 +25,11 @@ impl Uniques {
                 //simple check for the amount of blob cards played and queueing X draws
                 let draw = if owner == 0 {
                     world
-                        .query_filtered::<&PlayerTurnTracker, With<Player<1>>>()
+                        .query_filtered::<&PlayerTurnTracker, With<Player<0>>>()
                         .get_single_mut(world)
                 } else {
                     world
-                        .query_filtered::<&PlayerTurnTracker, With<Player<0>>>()
+                        .query_filtered::<&PlayerTurnTracker, With<Player<1>>>()
                         .get_single_mut(world)
                 }
                 .unwrap()
@@ -40,7 +40,7 @@ impl Uniques {
                 let mut routines = world.resource_mut::<RoutineManager>();
                 routines.finish();
                 for _ in 0..draw {
-                    routines.draw(owner);
+                    routines.draw(owner, false);
                 }
             }
             Uniques::BrainWorld => {
@@ -54,7 +54,7 @@ impl Uniques {
                     routines.finish();
                     for &card in test.iter() {
                         routines.scrap(card);
-                        routines.draw(owner);
+                        routines.draw(owner, false);
                     }
                 } else {
                     world.resource_mut::<RoutineManager>().extended_selection(
@@ -74,11 +74,11 @@ impl Uniques {
                 //simple check for the amount of bases in play and queuing 2 draws
                 let draw = if owner == 0 {
                     world
-                        .query_filtered::<&PlayerTurnTracker, With<Player<1>>>()
+                        .query_filtered::<&PlayerTurnTracker, With<Player<0>>>()
                         .get_single_mut(world)
                 } else {
                     world
-                        .query_filtered::<&PlayerTurnTracker, With<Player<0>>>()
+                        .query_filtered::<&PlayerTurnTracker, With<Player<1>>>()
                         .get_single_mut(world)
                 }
                 .unwrap()
@@ -88,8 +88,8 @@ impl Uniques {
                 let mut routines = world.resource_mut::<RoutineManager>();
                 routines.finish();
                 if draw {
-                    routines.draw(owner);
-                    routines.draw(owner);
+                    routines.draw(owner, false);
+                    routines.draw(owner, false);
                 }
             }
             Uniques::FleetHQ => {
@@ -107,7 +107,7 @@ impl Uniques {
                     routines.finish();
                     for &card in test.iter() {
                         routines.discard(owner, card);
-                        routines.draw(owner);
+                        routines.draw(owner, false);
                     }
                 } else {
                     world.resource_mut::<RoutineManager>().selection(

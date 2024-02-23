@@ -60,7 +60,7 @@ pub fn handle_choice_hover(
 }
 
 pub fn handle_choice_clicks(
-    mouse_buttons: Res<Input<MouseButton>>,
+    mouse_buttons: Res<ButtonInput<MouseButton>>,
     mut root: Query<&mut ChoiceRoot>,
     validate_button: Query<&Interaction, With<ValidateButton>>,
     mut buttons: Query<
@@ -144,7 +144,7 @@ pub fn handle_choice_clicks(
 }
 
 pub fn spawn_choices(commands: &mut Commands, set: ActionSet) {
-    fn spawn_ui<'w, 's, 'c>(commands: &'c mut Commands<'w, 's>) -> EntityCommands<'w, 's, 'c> {
+    fn spawn_ui<'w, 's, 'c>(commands: &'c mut Commands<'w, 's>) -> EntityCommands<'c> {
         commands.spawn((
             ChoiceRoot { finished: false },
             NodeBundle {
@@ -185,7 +185,7 @@ pub fn spawn_choices(commands: &mut Commands, set: ActionSet) {
         .with_children(|button| {
             button.spawn(TextBundle {
                 text: Text {
-                    alignment: TextAlignment::Center,
+                    justify: JustifyText::Center,
                     ..Text::from_section(
                         content,
                         TextStyle {
@@ -213,7 +213,7 @@ pub fn spawn_choices(commands: &mut Commands, set: ActionSet) {
         .with_children(|separator| {
             separator.spawn(TextBundle {
                 text: Text {
-                    alignment: TextAlignment::Center,
+                    justify: JustifyText::Center,
                     ..Text::from_section(
                         content,
                         TextStyle {

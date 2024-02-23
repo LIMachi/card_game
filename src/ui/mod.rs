@@ -1,7 +1,3 @@
-use crate::ui::billboards::{
-    attach_life_billboard_when_base_enter_play, remove_billboard_when_base_leave_play,
-    update_life_billboard,
-};
 use bevy::prelude::*;
 
 pub mod billboards;
@@ -50,7 +46,7 @@ pub fn ui_setup(mut commands: Commands) {
             .with_children(|button| {
                 button.spawn(TextBundle {
                     text: Text {
-                        alignment: TextAlignment::Center,
+                        justify: JustifyText::Center,
                         ..Text::from_section(
                             "Validate selection",
                             TextStyle {
@@ -71,13 +67,14 @@ impl Plugin for UIPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(PreStartup, ui_setup)
             .add_plugins((player_counters::CountersUIPlugin, choice_ui::ChoiceUIPlugin))
-            .add_systems(
-                Update,
-                (
-                    attach_life_billboard_when_base_enter_play,
-                    remove_billboard_when_base_leave_play,
-                ),
-            )
-            .add_systems(PostUpdate, update_life_billboard);
+            // .add_systems(
+            //     Update,
+            //     (
+            //         attach_life_billboard_when_base_enter_play,
+            //         remove_billboard_when_base_leave_play,
+            //     ),
+            // )
+            // .add_systems(PostUpdate, update_life_billboard)
+        ;
     }
 }

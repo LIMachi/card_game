@@ -6,7 +6,7 @@ use crate::states::turn::TurnStates;
 use crate::ui::player_counters::{AttackButton, PassTurnButton};
 
 pub fn pass_turn_button(
-    mouse_buttons: Res<Input<MouseButton>>,
+    mouse_buttons: Res<ButtonInput<MouseButton>>,
     button: Query<&PassTurnButton>,
     mut events: ResMut<GameEvent>,
 ) {
@@ -20,7 +20,7 @@ pub fn pass_turn_button(
 }
 
 pub fn attack_button(
-    mouse_buttons: Res<Input<MouseButton>>,
+    mouse_buttons: Res<ButtonInput<MouseButton>>,
     button: Query<&AttackButton>,
     mut events: ResMut<GameEvent>,
     turn: Res<State<TurnStates>>,

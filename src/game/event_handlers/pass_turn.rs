@@ -49,7 +49,7 @@ pub fn pass_turn<const PLAYER: u8>(
         routines.discard(PLAYER, card);
     }
     for _ in 0..5 {
-        routines.draw(PLAYER);
+        routines.draw(PLAYER, false);
     }
     turn.set(TurnStates::PlayerTurn((PLAYER + 1) % MAXIMUM_PLAYERS as u8));
     event.set_processed();

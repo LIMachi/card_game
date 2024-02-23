@@ -12,18 +12,23 @@ opt-level = 1
 opt-level = 3
 
 [dependencies.bevy]
-version = "0.12.1"
+version = "0.13.0"
 features = [
     "jpeg",
 ]
 
 [dependencies.bevy-inspector-egui]
-version = "0.22.1"
+version = "0.23"
+
+[dependencies.meshtext]
+version = "0.3.0"
+features = ["owned"]
 
 [dependencies]
 rand = "0.8.5"
 ron = "0.8.1"
 serde = "1.0.188"
 thiserror = "1.0.48"
-bevy_rapier3d = "0.23.0"
-bevy_mod_billboard = "0.5.1"
+bevy_rapier3d = "0.25.0"
+regex = "1.10.3"
+#bevy_mod_billboard = "0.5.1"

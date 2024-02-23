@@ -175,7 +175,7 @@ pub fn card_hover(
 pub fn focus_card_handler(
     mut commands: Commands,
     caster: Query<&RayCaster>,
-    buttons: Res<Input<MouseButton>>,
+    buttons: Res<ButtonInput<MouseButton>>,
     focused: Query<Entity, With<Focused>>,
     cards: Query<(Entity, &CardVisibility), With<CardVisibility>>,
 ) {
@@ -216,7 +216,7 @@ pub fn selection_feedback(
 
 pub fn selection_click(
     caster: Query<&RayCaster>,
-    buttons: Res<Input<MouseButton>>,
+    buttons: Res<ButtonInput<MouseButton>>,
     mut commands: Commands,
     selectable: Query<Entity, With<Selectable>>,
     selected: Query<Entity, With<Selected>>,
@@ -236,7 +236,7 @@ pub fn selection_click(
 
 pub fn card_click_handler(
     caster: Query<&RayCaster>,
-    buttons: Res<Input<MouseButton>>,
+    buttons: Res<ButtonInput<MouseButton>>,
     cards: Query<(
         &CardOwners,
         &Stacks,

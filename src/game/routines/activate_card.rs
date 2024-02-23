@@ -88,7 +88,6 @@ pub fn activate_card(world: &mut World) {
             match &set {
                 ActionSet::None => {}
                 ActionSet::One(action) => {
-                    // action.execute(world, index, card);
                     world
                         .resource_mut::<RoutineManager>()
                         .action(owner, card, index, 0, *action);
@@ -104,7 +103,9 @@ pub fn activate_card(world: &mut World) {
                     finished = false;
                 }
                 ActionSet::OneAndOptional(action, _) => {
-                    action.execute(world, index, card);
+                    world
+                        .resource_mut::<RoutineManager>()
+                        .action(owner, card, index, 0, *action);
                     world
                         .resource_mut::<NextState<GameStates>>()
                         .set(GameStates::ChoiceInput);

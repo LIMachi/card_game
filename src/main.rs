@@ -3,7 +3,8 @@ use crate::game::GamePlugin;
 use crate::prelude::*;
 use crate::utils::ray_caster::RayCasterPlugin;
 use bevy::ecs::system::RunSystemOnce;
-use bevy_mod_billboard::prelude::BillboardPlugin;
+// use bevy_mod_billboard::prelude::BillboardPlugin;
+use crate::utils::font3d::Font3DPlugin;
 use bevy_rapier3d::prelude::{NoUserData, RapierPhysicsPlugin};
 
 mod cards;
@@ -41,7 +42,7 @@ pub fn spawn_light(mut commands: Commands) {
         transform: Transform::from_xyz(0., -1000., 0.).looking_at(Vec3::ZERO, Vec3::Z),
         directional_light: DirectionalLight {
             color: Default::default(),
-            illuminance: 4000.0,
+            illuminance: 1000.0,
             shadows_enabled: true,
             ..Default::default()
         },
@@ -53,7 +54,7 @@ fn main() {
     App::new()
         .add_plugins((
             DefaultPlugins,
-            BillboardPlugin,
+            // BillboardPlugin,
             RapierPhysicsPlugin::<NoUserData>::default(),
             RayCasterPlugin,
             cards::CardsPlugin,
@@ -63,6 +64,7 @@ fn main() {
             GamePlugin,
             utils::debug::DebugPlugin,
             ui::UIPlugin,
+            Font3DPlugin,
         ))
         .add_systems(Startup, (spawn_camera, spawn_light))
         .add_systems(

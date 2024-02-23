@@ -9,7 +9,7 @@ use bevy_rapier3d::prelude::{DebugRenderContext, RapierDebugRenderPlugin};
 
 pub fn toggle_debug(
     mut commands: Commands,
-    keys: Res<Input<KeyCode>>,
+    keys: Res<ButtonInput<KeyCode>>,
     mut debug: ResMut<DebugRenderContext>,
     mut root: Query<&mut Visibility, With<FpsRoot>>,
     enemy_hand: Query<
@@ -17,7 +17,7 @@ pub fn toggle_debug(
         (With<Hand>, Without<MarketOwned>, Without<Player<0>>),
     >,
 ) {
-    if keys.just_pressed(KeyCode::Apps) {
+    if keys.just_pressed(KeyCode::ContextMenu) {
         debug.enabled ^= true;
         let mut visibility = root.single_mut();
         *visibility = if debug.enabled {
@@ -104,7 +104,7 @@ pub fn fps_text_update_system(
 ) {
     for mut text in &mut query {
         if let Some(value) = diagnostics
-            .get(FrameTimeDiagnosticsPlugin::FPS)
+            .get(&FrameTimeDiagnosticsPlugin::FPS)
             .and_then(|fps| fps.smoothed())
         {
             text.sections[1].value = format!("{value:>4.0}");
