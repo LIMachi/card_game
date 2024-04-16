@@ -1,0 +1,9 @@
+(
+    kind: Base(4),
+    factions: [TradeFederation],
+    cost: 4,
+    actions: [
+        Do(OneOf2(Life(2), Eco(2))),
+        Scrap(One(Atk(5)))
+    ]
+)

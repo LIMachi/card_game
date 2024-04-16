@@ -1,0 +1,9 @@
+(
+    kind: Outpost(6),
+    factions: [TradeFederation],
+    cost: 6,
+    actions: [
+        Do(One(Eco(3))),
+        Scrap(OneAndOptional(Draw(1), DestroyBase))
+    ]
+)

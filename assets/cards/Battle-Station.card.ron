@@ -1,0 +1,9 @@
+(
+    kind: Outpost(5),
+    factions: [MachineCult],
+    cost: 3,
+    actions: [
+        Scrap(One(Atk(5))),
+        None
+    ]
+)

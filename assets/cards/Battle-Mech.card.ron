@@ -1,0 +1,9 @@
+(
+    kind: Ship,
+    factions: [MachineCult],
+    cost: 5,
+    actions: [
+        Do(OneAndOptional(Atk(4), ScrapHandOrDiscard)),
+        Ally(MachineCult, One(Draw(1)))
+    ]
+)

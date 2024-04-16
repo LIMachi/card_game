@@ -1,0 +1,9 @@
+(
+    kind: Outpost(4),
+    factions: [TradeFederation],
+    cost: 3,
+    actions: [
+        Do(OneOf2(Life(1), Eco(1))),
+        Scrap(One(Atk(3)))
+    ]
+)

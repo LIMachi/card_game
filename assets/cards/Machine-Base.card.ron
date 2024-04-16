@@ -1,0 +1,9 @@
+(
+    kind: Outpost(6),
+    factions: [MachineCult],
+    cost: 7,
+    actions: [
+        Do(Two(Draw(1), ScrapHand)),
+        None
+    ]
+)

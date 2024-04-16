@@ -1,0 +1,9 @@
+(
+    kind: Ship,
+    factions: [MachineCult],
+    cost: 6,
+    actions: [
+        Do(OneAndOptional(Atk(6), DestroyBase)),
+        Ally(MachineCult, One(Draw(1)))
+    ]
+)

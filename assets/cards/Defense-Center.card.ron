@@ -1,0 +1,9 @@
+(
+    kind: Outpost(5),
+    factions: [TradeFederation],
+    cost: 5,
+    actions: [
+        Do(OneOf2(Life(3), Atk(2))),
+        Ally(TradeFederation, One(Atk(2)))
+    ]
+)

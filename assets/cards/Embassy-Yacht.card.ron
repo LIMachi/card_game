@@ -1,0 +1,9 @@
+(
+    kind: Ship,
+    factions: [TradeFederation],
+    cost: 3,
+    actions: [
+        Do(Three(Life(3), Eco(2), Unique(EmbassyYacht))),
+        None
+    ]
+)

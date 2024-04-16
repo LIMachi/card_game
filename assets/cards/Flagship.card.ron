@@ -1,0 +1,9 @@
+(
+    kind: Ship,
+    factions: [TradeFederation],
+    cost: 6,
+    actions: [
+        Do(Two(Atk(5), Draw(1))),
+        Ally(TradeFederation, One(Life(5)))
+    ]
+)

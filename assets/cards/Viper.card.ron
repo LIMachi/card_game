@@ -1,0 +1,6 @@
+(
+    kind: Ship,
+    factions: [Neutral],
+    cost: 0,
+    actions: [Do(One(Atk(1)))]
+)

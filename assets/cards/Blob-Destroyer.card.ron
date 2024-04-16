@@ -1,0 +1,10 @@
+(
+    kind: Ship,
+    factions: [Blob],
+    cost: 4,
+    actions: [
+        Do(One(Atk(6))),
+        Ally(Blob, AnyOf2(DestroyBase, ScrapMarket)),
+        None
+    ]
+)

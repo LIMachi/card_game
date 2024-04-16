@@ -1,0 +1,17 @@
+(
+    kind: Ship,
+    factions: [Blob],
+    cost: 6,
+    actions: [
+        Do(One(Atk(7))),
+        Ally(Blob, Two(
+            NextBuyOnDeck(Ships),
+            FreeBuy(
+                min_cost: 0,
+                max_cost: 255,
+                valid_kinds: Ships
+            )
+        )),
+        None
+    ]
+)

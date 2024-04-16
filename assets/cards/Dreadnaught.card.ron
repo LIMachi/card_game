@@ -1,0 +1,9 @@
+(
+    kind: Ship,
+    factions: [StarEmpire],
+    cost: 7,
+    actions: [
+        Do(Two(Atk(7), Draw(1))),
+        Scrap(One(Atk(5)))
+    ]
+)

@@ -1,0 +1,10 @@
+(
+    kind: Ship,
+    factions: [StarEmpire],
+    cost: 3,
+    actions: [
+        Do(Two(Atk(4), EnemyDiscard)),
+        Ally(StarEmpire, One(Atk(2))),
+        Scrap(One(Draw(1)))
+    ]
+)

@@ -1,0 +1,6 @@
+(
+    kind: Base(7),
+    factions: [Blob],
+    cost: 8,
+    actions: [Do(OneOf2(Atk(5), Unique(BlobWorld)))]
+)

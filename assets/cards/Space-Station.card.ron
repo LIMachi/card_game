@@ -1,0 +1,13 @@
+(
+    kind: Outpost(4),
+    factions: [StarEmpire],
+    cost: 4,
+    play: One(Atk(2)),
+    scrap: One(Eco(4)),
+    combo: {StarEmpire: One(Atk(2))},
+    actions: [
+        Do(One(Atk(2))),
+        Ally(StarEmpire, One(Atk(2))),
+        Scrap(One(Eco(4)))
+    ]
+)

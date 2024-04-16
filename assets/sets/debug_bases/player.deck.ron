@@ -1,0 +1,26 @@
+[
+    //(5, "Explorer"),
+
+    //(5, "Battle-Pod"),
+
+    (5, "Embassy-Yacht"),
+
+    //(1, "Barter-World"),
+    //(1, "Battle-Station"),
+    //(1, "Blob-Wheel"),
+    //(1, "Blob-World"),
+    //(1, "Brain-World"),
+    //(1, "Central-Office"),
+    //(1, "Defense-Center"),
+    //(1, "Fleet-HQ"),
+    //(1, "Junkyard"),
+    (5, "Machine-Base"),
+    //(1, "Mech-World"),
+    //(1, "Port-of-Call"),
+    //(1, "Recycling-Station"),
+    //(1, "Royal-Redoubt"),
+    //(1, "Space-Station"),
+    //(1, "The-Hive"),
+    //(1, "Trading-Post"),
+    //(1, "War-World")
+]

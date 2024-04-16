@@ -1,0 +1,10 @@
+(
+    kind: Ship,
+    factions: [TradeFederation],
+    cost: 4,
+    actions: [
+        Do(One(Eco(4))),
+        Ally(TradeFederation, One(NextBuyOnDeck(Ships))),
+        None
+    ]
+)

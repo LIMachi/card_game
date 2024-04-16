@@ -1,0 +1,9 @@
+(
+    kind: Ship,
+    factions: [Neutral],
+    cost: 2,
+    actions: [
+        Do(One(Eco(2))),
+        Scrap(One(Atk(2)))
+    ]
+)

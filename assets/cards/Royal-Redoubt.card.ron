@@ -1,0 +1,9 @@
+(
+    kind: Outpost(6),
+    factions: [StarEmpire],
+    cost: 6,
+    actions: [
+        Do(One(Atk(3))),
+        Ally(StarEmpire, One(EnemyDiscard))
+    ]
+)

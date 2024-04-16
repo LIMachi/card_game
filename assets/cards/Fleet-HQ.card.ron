@@ -1,0 +1,9 @@
+(
+    kind: Base(8),
+    factions: [TradeFederation],
+    cost: 8,
+    actions: [
+        Do(One(Unique(FleetHQ))),
+        None
+    ]
+)

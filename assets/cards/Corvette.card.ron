@@ -1,0 +1,9 @@
+(
+    kind: Ship,
+    factions: [StarEmpire],
+    cost: 2,
+    actions: [
+        Do(Two(Atk(1), Draw(1))),
+        Ally(StarEmpire, One(Atk(2)))
+    ]
+)

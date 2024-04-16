@@ -1,0 +1,6 @@
+(
+    kind: Outpost(6),
+    factions: [Blob, MachineCult, TradeFederation, StarEmpire],
+    cost: 5,
+    actions: []
+)

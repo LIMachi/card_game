@@ -1,0 +1,9 @@
+(
+    kind: Base(5),
+    factions: [Blob],
+    cost: 3,
+    actions: [
+        Do(One(Atk(1))),
+        Scrap(One(Eco(3)))
+    ]
+)
